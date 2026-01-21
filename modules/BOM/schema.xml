@@ -1,0 +1,39 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>vtiger_bom</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_bom` (
+  `bomid` int NOT NULL,
+  `subject` varchar(100) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci DEFAULT NULL,
+  `contactid` int DEFAULT NULL,
+  `account_id` int DEFAULT NULL,
+  `pre_tax_total` decimal(25,8) DEFAULT NULL,
+  `s_h_percent` decimal(25,3) DEFAULT NULL,
+  `currency_id` int DEFAULT NULL,
+  `conversion_rate` decimal(10,3) DEFAULT NULL,
+  `compound_taxes_info` text NOT NULL,
+  `total` decimal(25,8) DEFAULT NULL,
+  `subtotal` decimal(27,8) DEFAULT NULL,
+  `adjustment` decimal(25,8) DEFAULT NULL,
+  `salescommission` decimal(25,3) DEFAULT NULL,
+  `exciseduty` decimal(27,8) DEFAULT NULL,
+  `taxtype` varchar(25) DEFAULT NULL,
+  `discount_percent` decimal(25,3) DEFAULT NULL,
+  `discount_amount` decimal(27,8) DEFAULT NULL,
+  `tags` varchar(1) DEFAULT NULL,
+  `s_h_amount` decimal(25,8) DEFAULT NULL,
+  `qty_multiple` varchar(250) DEFAULT NULL,
+  `atomglobalpricehike` varchar(250) DEFAULT NULL,
+  PRIMARY KEY (`bomid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3]]></sql>
+		</table>
+		<table>
+			<name>vtiger_bomcf</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_bomcf` (
+  `bomid` int NOT NULL,
+  PRIMARY KEY (`bomid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3]]></sql>
+		</table>
+	</tables>
+</schema>

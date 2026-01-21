@@ -1,0 +1,11 @@
+Traced on 2025-04-21 16:31:03
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/modules/Vtiger/models/Record.php::getInstance::310<br>
+/var/www/html/vtiger81/modules/Vtiger/models/DetailView.php::getInstanceById::321<br>
+/var/www/html/vtiger81/modules/Vtiger/views/Detail.php::getInstance::81<br>
+/var/www/html/vtiger81/modules/Calendar/views/Detail.php::preProcess::30<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>

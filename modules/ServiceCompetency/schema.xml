@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<schema>
+	<tables>
+		<table>
+			<name>vtiger_servicecompetency</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_servicecompetency` (
+  `servicecompetencyid` int NOT NULL,
+  `consultantname` varchar(100) DEFAULT NULL,
+  `consultantrating` varchar(100) DEFAULT NULL,
+  `consultantrole` varchar(100) DEFAULT NULL,
+  `tags` varchar(1) DEFAULT NULL,
+  `servicename` varchar(100) DEFAULT NULL,
+  `working_days` varchar(100) DEFAULT NULL,
+  `tickets_count` varchar(100) DEFAULT NULL,
+  `approvalstatus` varchar(100) DEFAULT NULL,
+  `scstatus` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`servicecompetencyid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3]]></sql>
+		</table>
+		<table>
+			<name>vtiger_servicecompetencycf</name>
+			<sql><![CDATA[CREATE TABLE `vtiger_servicecompetencycf` (
+  `servicecompetencyid` int NOT NULL,
+  PRIMARY KEY (`servicecompetencyid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3]]></sql>
+		</table>
+	</tables>
+</schema>
