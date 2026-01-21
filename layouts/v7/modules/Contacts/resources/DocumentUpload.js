@@ -97,7 +97,7 @@ jQuery.Class("Contacts_DocumentUpload_Js", {
 
 	registerUploadEvent: function () {
 		var thisInstance = this;
-
+//uploadclick
 		jQuery(document).on('click', '#uploadDocsBtn', function (e) {
 			e.preventDefault();
 			   var container = jQuery('.relatedContainer');
