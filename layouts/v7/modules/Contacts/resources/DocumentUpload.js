@@ -1,15 +1,27 @@
 jQuery.Class("Contacts_DocumentUpload_Js", {
 
 }, {
-    registerUploadButton: function () {
-        let btn = `
-        <button class="btn btn-primary" id="customUploadBtn">
-            <i class="fa fa-upload"></i> Upload Documents
-        </button>`;
-        
-        // Insert before More button
-        jQuery('.detailview-header .btn-toolbar').prepend(btn);
-    },
+	registerUploadButton: function () {
+
+		var module = app.getModuleName();
+		var view = app.getViewName();
+
+		let btn = `
+	<button class="btn btn-primary" id="customUploadBtn">
+	    <i class="fa fa-upload"></i> Upload Documents
+	</button>`;
+
+		// Contacts → Detail View
+		if (module === 'Contacts' && view === 'Detail') {
+			jQuery('.detailview-header .btn-toolbar').prepend(btn);
+		}
+
+		// Calendar → List View
+		if (module === 'Calendar' && view === 'List') {
+			// After "Add Task" button
+			jQuery('.listViewActions').append(btn);
+		}
+	},
 
     registerClickEvent: function () {
 	    var thisInstance = this;
@@ -94,10 +106,84 @@ jQuery.Class("Contacts_DocumentUpload_Js", {
         jQuery('#docUploadModal').modal('show');
     },
 */
-
 	registerUploadEvent: function () {
 		var thisInstance = this;
-//uploadclick
+
+		jQuery(document).on('click', '#uploadDocsBtn', function (e) {
+			e.preventDefault();
+
+			let files = jQuery('#docFiles')[0].files;
+			if (!files.length) {
+				app.helper.showErrorNotification({"message":"Please select files"});
+				return;
+			}
+
+			let module = app.getModuleName();
+			let view = app.getViewName();
+			let recordIds = [];
+
+			console.log(view,module,'view');
+			// Contacts Detail → single record
+			if (module === 'Contacts' && view === 'Detail') {
+				recordIds = [app.getRecordId()];
+			}
+
+			// Calendar List → multiple selected
+			if (module === 'Calendar' && view === 'List') {
+				var listInstance = Vtiger_List_Js.getInstance();
+				var selectedRecordCount = listInstance.getSelectedRecordCount();
+		                 recordIds = listInstance.readSelectedIds();
+
+				if (selectedRecordCount === 0) {
+					app.helper.showErrorNotification({message: "Please select records"});
+					return;
+				}
+			}
+			console.log(recordIds,'recordIds');
+			let formData = new FormData();
+			for (let i = 0; i < files.length; i++) {
+				formData.append('documents[]', files[i]);
+			}
+
+			// Send array of recordIds
+			formData.append('recordIds', JSON.stringify(recordIds));
+			formData.append('parentModule', app.getModuleName());
+			formData.append('module', 'Contacts');
+			formData.append('action', 'UploadContactDocuments');
+
+			app.helper.showProgress();
+
+			app.request.post({
+				url: 'index.php',
+				data: formData,
+				processData: false,
+				contentType: false
+
+			}).then(function (err, response) {
+
+				app.helper.hideProgress();
+
+				if (err) {
+					app.helper.showErrorNotification({"message":"Upload failed"});
+					return;
+				}
+
+				jQuery('#docUploadModal').modal('hide').remove();
+
+				app.helper.showSuccessNotification({"message":"Documents uploaded successfully"});
+
+				// Refresh list or related tab
+				if (module === 'Contacts') {
+					var container = jQuery('.relatedContainer');
+					app.event.trigger("post.relatedListLoad",container.find(".searchRow"));
+				} else {
+					app.helper.refreshListView();
+				}
+			});
+		});
+	},
+	registerUploadEvent_old: function () {
+		var thisInstance = this;
 		jQuery(document).on('click', '#uploadDocsBtn', function (e) {
 			e.preventDefault();
 			   var container = jQuery('.relatedContainer');
