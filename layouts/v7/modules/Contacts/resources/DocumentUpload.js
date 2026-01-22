@@ -6,7 +6,7 @@ jQuery.Class("Contacts_DocumentUpload_Js", {
 		var module = app.getModuleName();
 		var view = app.getViewName();
 
-		let btn = `
+		var btn = `
 	<button class="btn btn-primary" id="customUploadBtn">
 	    <i class="fa fa-upload"></i> Upload Documents
 	</button>`;
@@ -17,9 +17,19 @@ jQuery.Class("Contacts_DocumentUpload_Js", {
 		}
 
 		// Calendar → List View
+
 		if (module === 'Calendar' && view === 'List') {
-			// After "Add Task" button
-			jQuery('.listViewActions').append(btn);
+		var btn = `
+	<button class="btn addButton btn-default module-buttons" id="customUploadBtn">
+	    <i class="fa fa-upload"></i> Upload Documents
+	</button>`;
+			var addEventBtn = jQuery('#Calendar_listView_basicAction_LBL_ADD_EVENT');
+			if (addEventBtn.length) {
+				addEventBtn.first().before(btn);
+			} else {
+				// fallback if selector changes in theme
+				jQuery('.listViewActions').prepend(btn);
+			}
 		}
 	},
 
@@ -147,9 +157,16 @@ jQuery.Class("Contacts_DocumentUpload_Js", {
 
 			// Send array of recordIds
 			formData.append('recordIds', JSON.stringify(recordIds));
-			formData.append('parentModule', app.getModuleName());
 			formData.append('module', 'Contacts');
 			formData.append('action', 'UploadContactDocuments');
+			let parentModule = app.getModuleName();
+
+			// Calendar list actually contains Events records
+			if(parentModule === 'Calendar') {
+				parentModule = 'Events';
+			}
+
+			formData.append('parentModule', parentModule);
 
 			app.helper.showProgress();
 
