@@ -191,7 +191,8 @@ jQuery.Class("Contacts_DocumentUpload_Js", {
 
 				// Refresh list or related tab
 				if (module === 'Contacts') {
-					$('.nav-tabs').find(".tab-item.active[data-module='Documents']").trigger('click');
+					var container = jQuery('.relatedContainer');
+					app.event.trigger("post.relatedListLoad",container.find(".searchRow"));
 				} else {
 					app.helper.refreshListView();
 				}

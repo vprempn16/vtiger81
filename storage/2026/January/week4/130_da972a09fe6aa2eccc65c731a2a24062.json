@@ -1,0 +1,1112 @@
+{
+  "info": {
+    "_postman_id": "0a911c07-9b30-4db3-a78d-e7e48a39d5b6",
+    "name": "WhatsApp CRM API",
+    "description": "WhatsApp-only endpoints for CRM integration",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "31648121"
+  },
+  "item": [
+    {
+      "name": "Account",
+      "item": [
+        {
+          "name": "Get WhatsApp Account List",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Contact/account-info-list",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "Contact",
+                "account-info-list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/account-check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "account-check"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Account Info Save",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"data\": {\r\n    \"values\": {\r\n      \"name\" : \"Prem Nath\",\r\n      \"description\" : \"Whatsapp account Details\",\r\n      \"app_id\": \"1697915567636266\",\r\n      \"app_secret\": \"527b6024ea5ff024385f3258eb05dc28\",\r\n      \"phone_number_id\": \"399445176588320\",\r\n      \"business_id\": \"347901028417242\",\r\n      \"access_token\": \"EAAYIPsZAEfyoBPtMSd5HjosfxVAiPZCv01kxeA3vbxGF95e5ZBUPZBUI6yXbZApoDLFRDGNHrWBZCZC6sZCdAfYZC0LsPzd8pUaPeWKmMtF6SjORtF8OO9ce3Ho87HTZCtFeH3FF5rMqyU8N6DUp8ZC8MV84IGnMpY2AOGjJ0dId2l1OAmOkv4BrCIdEuQQCSbEHrKuuAZDZD\"\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/account-info/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "account-info",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \r\n    hub_verify_token : 'atom_whatsapp_verify_123'\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://demo.gamma.atomlines.com:8004/api/v1/webhooks/whatsapp/?hub.verify_token=atom_whatsapp_verify_123&hub.challenge=123456789",
+              "protocol": "https",
+              "host": [
+                "demo",
+                "gamma",
+                "atomlines",
+                "com"
+              ],
+              "port": "8004",
+              "path": [
+                "api",
+                "v1",
+                "webhooks",
+                "whatsapp",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "hub.verify_token",
+                  "value": "atom_whatsapp_verify_123"
+                },
+                {
+                  "key": "hub.challenge",
+                  "value": "123456789"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Conversations",
+      "item": [
+        {
+          "name": "List Conversations",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "302|mVSlpinpOSeFs4Vi42HSmjKoJbjlSC2rKP6wpSnW287def32",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/conversations",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "conversations"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Conversation",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "302|mVSlpinpOSeFs4Vi42HSmjKoJbjlSC2rKP6wpSnW287def32",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/conversations/73a996fd-c233-4865-831a-e58af311d328",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "conversations",
+                "73a996fd-c233-4865-831a-e58af311d328"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"UUID\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/conversations/{{conversation_id}}/assign",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "whatsapp",
+                "conversations",
+                "{{conversation_id}}",
+                "assign"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Conversation Status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"open\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/conversations/{{conversation_id}}/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "whatsapp",
+                "conversations",
+                "{{conversation_id}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Check 24h Window",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/conversations/{{conversation_id}}/window",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "whatsapp",
+                "conversations",
+                "{{conversation_id}}",
+                "window"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Messages",
+      "item": [
+        {
+          "name": "Send Media Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "uuid": "483e01d3-b231-4f52-8196-33af83897afe",
+                  "src": "/C:/Users/USER/Downloads/2yr_cse/G9p3dB1a4AE2u_M.jpeg"
+                },
+                {
+                  "key": "data[values][channelId]",
+                  "value": "659563f9-3983-418f-b286-c44457f1d114",
+                  "type": "text",
+                  "uuid": "be9c6051-1162-49f2-b751-883df07af45c"
+                },
+                {
+                  "key": "data[values][type]",
+                  "value": "media",
+                  "type": "text",
+                  "uuid": "5ec003d8-3685-41f0-b1bc-5f36c5564c13"
+                },
+                {
+                  "key": "data[values][recipients][0]",
+                  "value": "phone_number",
+                  "type": "text",
+                  "uuid": "a464225a-9dc3-42df-bc13-d985976e516f"
+                },
+                {
+                  "key": "data[values][details][media_type]",
+                  "value": "image",
+                  "type": "text",
+                  "uuid": "6df428ab-0b74-4675-a15c-3850f4a01981"
+                },
+                {
+                  "key": "data[values][details][caption]",
+                  "value": "JanaNayagan",
+                  "type": "text",
+                  "uuid": "3301e30e-d38c-4f29-92de-c229e08c6a27"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/Contact/c409a93f-f36b-4da6-9ace-7c4a70d8c3cc/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "Contact",
+                "c409a93f-f36b-4da6-9ace-7c4a70d8c3cc",
+                "whatsapp",
+                "send"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Template Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"data\": {\r\n    \"values\": {\r\n      \"recipients\": [\"phone_number\",\"last_name\"],\r\n      \"channelId\": \"659563f9-3983-418f-b286-c44457f1d114\",\r\n      \"type\" : \"template\",\r\n      \"details\": {\r\n        \"templateId\": \"06afd9e9-917a-492f-800b-530783f1177b\",\r\n        \"language\": \"en_US\"\r\n      }\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/Contact/c409a93f-f36b-4da6-9ace-7c4a70d8c3cc/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "Contact",
+                "c409a93f-f36b-4da6-9ace-7c4a70d8c3cc",
+                "whatsapp",
+                "send"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Interactive Save",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"data\": {\r\n    \"values\": {\r\n      \"whatsapp_channel_id\": \"659563f9-3983-418f-b286-c44457f1d114\",\r\n      \"name\": \"welcome_menu\",\r\n      \"type\": \"button\",\r\n      \"body\": \"Hi! What do you want?\",\r\n      \"crm_module\": \"Lead\",\r\n      \"trigger_event\": \"created\",\r\n      \"items\": [\r\n        {\r\n          \"item_type\": \"button\",\r\n          \"item_key\": \"book\",\r\n          \"title\": \"Book Now\",\r\n          \"sort_order\": 1,\r\n          \"next_action_type\": \"start_flow\",\r\n          \"next_action_value\": \"booking_flow\"\r\n        },\r\n        {\r\n          \"item_type\": \"button\",\r\n          \"item_key\": \"support\",\r\n          \"title\": \"Support\",\r\n          \"sort_order\": 2,\r\n          \"next_action_type\": \"send_interactive\",\r\n          \"next_action_value\": \"support_menu\"\r\n        }\r\n      ]\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/interactive/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "interactive",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Interactive Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"data\": {\r\n    \"values\": {\r\n      \"recipients\": [\"phone_number\"],\r\n      \"channelId\": \"659563f9-3983-418f-b286-c44457f1d114\",\r\n      \"type\" : \"interactive\",\r\n      \"details\": {\r\n          \"name\": \"welcome_menu\"\r\n      }\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/Contact/c409a93f-f36b-4da6-9ace-7c4a70d8c3cc/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "Contact",
+                "c409a93f-f36b-4da6-9ace-7c4a70d8c3cc",
+                "whatsapp",
+                "send"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Flow Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"data\": {\r\n    \"values\": {\r\n      \"name\": \"appointment\",\r\n      \"to\": [\"phone_number\"],\r\n      \"whatsapp_channel_id\": \"659563f9-3983-418f-b286-c44457f1d114\",\r\n      \"phone_number\": \"919789687940\",\r\n      \"flow_id\": \"123456789012345\",\r\n      \"user_data\": {\r\n        \"user_id\": \"USR123\",\r\n        \"name\": \"John Doe\",\r\n        \"email\": \"john@example.com\"\r\n     }\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/flow-messages/appointment/whatsapp",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "flow-messages",
+                "appointment",
+                "whatsapp"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"data\": {\r\n    \"values\": {\r\n      \"recipients\": [\"phone_number\",\"last_name\"],\r\n      \"channelId\": \"659563f9-3983-418f-b286-c44457f1d114\",\r\n      \"type\" : \"message\",\r\n      \"details\": {\r\n       \"text\":\"Hello, how are you?\"\r\n      }\r\n    }\r\n  }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/Contact/c409a93f-f36b-4da6-9ace-7c4a70d8c3cc/whatsapp/send",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "Contact",
+                "c409a93f-f36b-4da6-9ace-7c4a70d8c3cc",
+                "whatsapp",
+                "send"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Fetch Chats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/Contact/c409a93f-f36b-4da6-9ace-7c4a70d8c3cc/whatsapp/chat",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "Contact",
+                "c409a93f-f36b-4da6-9ace-7c4a70d8c3cc",
+                "whatsapp",
+                "chat"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Templates",
+      "item": [
+        {
+          "name": "List Templates",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/659563f9-3983-418f-b286-c44457f1d114/templates",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "659563f9-3983-418f-b286-c44457f1d114",
+                "templates"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Template Mapping",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/659563f9-3983-418f-b286-c44457f1d114/template/5781e5ea-20af-4e37-a585-d124cb52b349",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "659563f9-3983-418f-b286-c44457f1d114",
+                "template",
+                "5781e5ea-20af-4e37-a585-d124cb52b349"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Template Mapping",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{ \r\n   \"data\": {\r\n        \"values\": {\r\n            \"module\": \"Contact\",\r\n            \"template_id\": \"5781e5ea-20af-4e37-a585-d124cb52b349\",\r\n            \"language\": \"en\",\r\n            \"mappings\": [\r\n                {\r\n                    \"template_variable\": \"1\",\r\n                    \"crm_module\": \"Contact\",\r\n                    \"crm_field\": \"firstName\",\r\n                    \"component_type\": \"body\"\r\n                }\r\n            ]\r\n        }\r\n    }\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/659563f9-3983-418f-b286-c44457f1d114/template/5781e5ea-20af-4e37-a585-d124cb52b349",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "659563f9-3983-418f-b286-c44457f1d114",
+                "template",
+                "5781e5ea-20af-4e37-a585-d124cb52b349"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync Single Template",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "https://demo.gamma.atomlines.com:8004/api/v1/settings/whatsapp/659563f9-3983-418f-b286-c44457f1d114/template/4145d514-2d60-4d16-a85e-9f25fb0f0baf/sync",
+              "protocol": "https",
+              "host": [
+                "demo",
+                "gamma",
+                "atomlines",
+                "com"
+              ],
+              "port": "8004",
+              "path": [
+                "api",
+                "v1",
+                "settings",
+                "whatsapp",
+                "659563f9-3983-418f-b286-c44457f1d114",
+                "template",
+                "4145d514-2d60-4d16-a85e-9f25fb0f0baf",
+                "sync"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sync Templates",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/659563f9-3983-418f-b286-c44457f1d114/templates/sync",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "659563f9-3983-418f-b286-c44457f1d114",
+                "templates",
+                "sync"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Mapping Template By Name",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/templates/field-mapping/getTemplateMapping/delivery_failed_1/Contact",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "templates",
+                "field-mapping",
+                "getTemplateMapping",
+                "delivery_failed_1",
+                "Contact"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Check",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{base_url}}/settings/whatsapp/templates/list-check",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "settings",
+                "whatsapp",
+                "templates",
+                "list-check"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Preview Template",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/Contact/c409a93f-f36b-4da6-9ace-7c4a70d8c3cc/06afd9e9-917a-492f-800b-530783f1177b/whatsapp/preview",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "Contact",
+                "c409a93f-f36b-4da6-9ace-7c4a70d8c3cc",
+                "06afd9e9-917a-492f-800b-530783f1177b",
+                "whatsapp",
+                "preview"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Webhooks",
+      "item": [
+        {
+          "name": "Incoming Messages Webhook",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"entry\": [\r\n    {\r\n      \"changes\": [\r\n        {\r\n          \"value\": {\r\n            \"contacts\": [\r\n              {\r\n                \"profile\": {\r\n                  \"name\": \"Premnath\"\r\n                }\r\n              }\r\n            ],\r\n            \"messages\": [\r\n              {\r\n                \"from\": \"919999999999\",\r\n                \"id\": \"wamid.HBgM...\",\r\n                \"timestamp\": \"1703323000\",\r\n                \"type\": \"text\",\r\n                \"text\": {\r\n                  \"body\": \"Hello WhatsApp\"\r\n                }\r\n              }\r\n            ]\r\n          }\r\n        }\r\n      ]\r\n    }\r\n  ]\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/webhooks/whatsapp/messages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "webhooks",
+                "whatsapp",
+                "messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Message Status Webhook",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/whatsapp/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "whatsapp",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Opt-Out Webhook",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/whatsapp/optout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "webhooks",
+                "whatsapp",
+                "optout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "item": [
+        {
+          "name": "Rotate WhatsApp Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/whatsapp/security/rotate-token",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "whatsapp",
+                "security",
+                "rotate-token"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.example.com"
+    },
+    {
+      "key": "conversation_id",
+      "value": "UUID"
+    }
+  ]
+}
