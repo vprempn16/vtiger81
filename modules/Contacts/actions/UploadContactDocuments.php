@@ -75,7 +75,7 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
             /* ==========================================
              * EVENTS / CALENDAR MODULE (NEW CORRECT LOGIC)
              * ========================================== */
-            if ($parentModule === "Calendar") {
+            if ($parentModule === "Events") {
 
                 foreach ($recordIds as $eventId) {
 

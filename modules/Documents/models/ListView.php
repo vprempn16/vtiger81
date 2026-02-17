@@ -250,7 +250,103 @@ class Documents_ListView_Model extends Vtiger_ListView_Model {
 			$record['id'] = $recordId;
 			$listViewRecordModels[$recordId] = $moduleModel->getRecordFromArray($record, $rawData);
 		}
+		// -------------------- CUSTOM CODE START --------------------
+
+		if (!empty($listViewRecordModels)) {
+
+			$documentIds = array_keys($listViewRecordModels);
+			$placeholders = implode(',', array_fill(0, count($documentIds), '?'));
+
+			$sql = "
+	SELECT
+	    rel.crmid AS documentid,
+	    ent.crmid AS relatedid,
+	    ent.setype AS module,
+	    ent.label
+	FROM vtiger_crmentityrel rel
+	INNER JOIN vtiger_crmentity ent ON ent.crmid = rel.relcrmid
+	WHERE rel.crmid IN ($placeholders)
+	  AND ent.setype IN ('Contacts','Accounts')
+	  AND ent.deleted = 0
+    ";
+
+			$res = $db->pquery($sql, $documentIds);
+			$relationMap = [];
+
+			while ($row = $db->fetchByAssoc($res)) {
+				$relationMap[$row['documentid']][$row['module']][] = $row['label'];
+			}
+
+			foreach ($listViewRecordModels as $docId => $recordModel) {
+
+				$contacts = [];
+				$accounts = [];
+
+				if (!empty($relationMap[$docId]['Contacts'])) {
+					$contacts = $relationMap[$docId]['Contacts'];
+				}
+
+				if (!empty($relationMap[$docId]['Accounts'])) {
+					$accounts = $relationMap[$docId]['Accounts'];
+				}
+
+				// virtual fields (no DB columns)
+				$recordModel->set('contact_list', implode(', ', $contacts));
+				$recordModel->set('account_list', implode(', ', $accounts));
+			}
+		}
+
+		// -------------------- CUSTOM CODE END --------------------
+
 		return $listViewRecordModels;
+	}
+	public function getListViewHeaders() {
+		 $headers = parent::getListViewHeaders();
+		 return $headers
+		$moduleModel = $this->getModule();
+
+		// Contacts column
+		$contactField = Vtiger_Field_Model::init(
+			$moduleModel,
+			[
+				'name'  => 'contact_list',
+				'label' => 'Contacts',
+				'uitype'=> 1,
+				'typeofdata' => 'V~O',
+				'displaytype' => 1,
+				'presence' => 2
+			]
+		);
+
+		// Fake but required
+		$contactField->set('id', 'contact_list');
+		$contactField->set('column', 'contact_list');
+		$contactField->set('table', 'vtiger_notes');
+		$contactField->set('module', $moduleModel);
+
+		$headers['contact_list'] = $contactField;
+
+		// Accounts column
+		$accountField = Vtiger_Field_Model::init(
+			$moduleModel,
+			[
+				'name'  => 'account_list',
+				'label' => 'Accounts',
+				'uitype'=> 1,
+				'typeofdata' => 'V~O',
+				'displaytype' => 1,
+				'presence' => 2
+			]
+		);
+
+		$accountField->set('id', 'account_list');
+		$accountField->set('column', 'account_list');
+		$accountField->set('table', 'vtiger_notes');
+		$accountField->set('module', $moduleModel);
+
+		$headers['account_list'] = $accountField;
+
+		return $headers;
 	}
 
 }
