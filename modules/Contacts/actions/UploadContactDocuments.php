@@ -101,6 +101,11 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
                             continue;
                         }
 
+                        // For Events uploads, relate documents ONLY to Accounts
+                        if ($parentEntityModule !== "Accounts") {
+                            continue;
+                        }
+
                         $parentModuleModel = Vtiger_Module_Model::getInstance($parentEntityModule);
                         $documentsModuleModel = Vtiger_Module_Model::getInstance("Documents");
 
