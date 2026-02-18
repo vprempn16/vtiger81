@@ -259,13 +259,13 @@ class Documents_ListView_Model extends Vtiger_ListView_Model {
 
 			$sql = "
 	SELECT
-	    rel.crmid AS documentid,
+	    rel.notesid AS documentid,
 	    ent.crmid AS relatedid,
 	    ent.setype AS module,
 	    ent.label
-	FROM vtiger_crmentityrel rel
-	INNER JOIN vtiger_crmentity ent ON ent.crmid = rel.relcrmid
-	WHERE rel.crmid IN ($placeholders)
+	FROM vtiger_senotesrel rel
+	INNER JOIN vtiger_crmentity ent ON ent.crmid = rel.crmid
+	WHERE rel.notesid IN ($placeholders)
 	  AND ent.setype IN ('Contacts','Accounts')
 	  AND ent.deleted = 0
     ";
@@ -300,25 +300,20 @@ class Documents_ListView_Model extends Vtiger_ListView_Model {
 
 		return $listViewRecordModels;
 	}
+
 	public function getListViewHeaders() {
-		 $headers = parent::getListViewHeaders();
-		 return $headers
+		$headers = parent::getListViewHeaders();
 		$moduleModel = $this->getModule();
 
-		// Contacts column
-		$contactField = Vtiger_Field_Model::init(
-			$moduleModel,
-			[
-				'name'  => 'contact_list',
-				'label' => 'Contacts',
-				'uitype'=> 1,
-				'typeofdata' => 'V~O',
-				'displaytype' => 1,
-				'presence' => 2
-			]
-		);
+		// Contacts column (virtual)
+		$contactField = new Vtiger_Field_Model();
+		$contactField->set('name', 'contact_list');
+		$contactField->set('label', 'Contacts');
+		$contactField->set('uitype', 1);
+		$contactField->set('typeofdata', 'V~O');
+		$contactField->set('displaytype', 1);
+		$contactField->set('presence', 2);
 
-		// Fake but required
 		$contactField->set('id', 'contact_list');
 		$contactField->set('column', 'contact_list');
 		$contactField->set('table', 'vtiger_notes');
@@ -326,18 +321,14 @@ class Documents_ListView_Model extends Vtiger_ListView_Model {
 
 		$headers['contact_list'] = $contactField;
 
-		// Accounts column
-		$accountField = Vtiger_Field_Model::init(
-			$moduleModel,
-			[
-				'name'  => 'account_list',
-				'label' => 'Accounts',
-				'uitype'=> 1,
-				'typeofdata' => 'V~O',
-				'displaytype' => 1,
-				'presence' => 2
-			]
-		);
+		// Accounts column (virtual)
+		$accountField = new Vtiger_Field_Model();
+		$accountField->set('name', 'account_list');
+		$accountField->set('label', 'Accounts');
+		$accountField->set('uitype', 1);
+		$accountField->set('typeofdata', 'V~O');
+		$accountField->set('displaytype', 1);
+		$accountField->set('presence', 2);
 
 		$accountField->set('id', 'account_list');
 		$accountField->set('column', 'account_list');
