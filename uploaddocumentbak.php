@@ -2,6 +2,7 @@
 require_once "data/CRMEntity.php";
 require_once "modules/Documents/Documents.php";
 
+
 class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
 {
     public function process(Vtiger_Request $request)
@@ -79,24 +80,29 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
 
                 foreach ($recordIds as $eventId) {
 
-                    // Get "Related Contacts" records of the Event
+                    // Get "Related To" records of the Event
                     $res = $db->pquery(
-                        "SELECT contactid FROM vtiger_cntactivityrel WHERE activityid = ?",
+                        "SELECT crmid FROM vtiger_seactivityrel WHERE activityid = ?",
                         [$eventId]
                     );
 
                     if ($db->num_rows($res) === 0) {
-                        continue; // Event has no Related Contacts
+                        continue; // Event has no Related To
                     }
 
                     while ($row = $db->fetchByAssoc($res)) {
 
-                        $parentId = $row["contactid"];
+                        $parentId = $row["crmid"];
                         if (empty($parentId)) {
                             continue;
                         }
 
-                        $parentModuleModel = Vtiger_Module_Model::getInstance("Contacts");
+                        $parentEntityModule = getSalesEntityType($parentId);
+                        if (empty($parentEntityModule)) {
+                            continue;
+                        }
+
+                        $parentModuleModel = Vtiger_Module_Model::getInstance($parentEntityModule);
                         $documentsModuleModel = Vtiger_Module_Model::getInstance("Documents");
 
                         $relationModel = Vtiger_Relation_Model::getInstance(
@@ -206,3 +212,4 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
     }
 }
 ?>
+
