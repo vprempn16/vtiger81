@@ -81,15 +81,21 @@ Settings_Vtiger_List_Js("Settings_Whatsapp_Templates_Js", {}, {
             app.request.get({ 'url': actionUrl }).then(function (error, data) {
                 app.helper.hideProgress();
                 if (data) {
-                    console.log(data, selects, 'data')
                     var options = '<option value="">Select Field</option>';
                     jQuery.each(data, function (fieldName, fieldLabel) {
                         options += '<option value="' + fieldName + '">' + fieldLabel + '</option>';
                     });
                     var selects = modalContainer.find('.crm-field-select');
-                    selects.select2('destroy');
-                    selects.html(options);
-                    vtUtils.showSelect2ElementView(selects);
+                    console.log(selects, 'selects');
+                    selects.each(function () {
+                        var currentSelect = jQuery(this);
+                        if (currentSelect.data('select2')) {
+                            currentSelect.select2('destroy');
+                        }
+                        currentSelect.html(options);
+
+                    });
+                    vtUtils.showSelect2ElementView(modalContainer.find('select.crm-field-select'));
                 }
             });
         });

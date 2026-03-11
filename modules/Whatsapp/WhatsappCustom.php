@@ -7,6 +7,7 @@ class WhatsappCustom
         $this->createFields();
         $this->createTables();
         $this->settingsLink();
+        $this->addHeaderScript();
     }
 
     public function postDisable()
@@ -17,6 +18,7 @@ class WhatsappCustom
     public function postEnable()
     {
         $this->settingsLink();
+        $this->addHeaderScript();
     }
 
     public function postUpdate()
@@ -213,6 +215,15 @@ class WhatsappCustom
         global $adb;
         $name = "WhatsApp Channels Setup";
         $adb->pquery("DELETE FROM vtiger_settings_field WHERE name = ?", array($name));
+    }
+
+    public function addHeaderScript()
+    {
+        require_once('vtlib/Vtiger/Link.php');
+        $module = Vtiger_Module::getInstance('Whatsapp');
+        if($module) {
+            Vtiger_Link::addLink($module->id, 'HEADERSCRIPT', 'Whatsapp', 'layouts/v7/modules/Whatsapp/resources/Whatsapp.js');
+        }
     }
 }
 ?>

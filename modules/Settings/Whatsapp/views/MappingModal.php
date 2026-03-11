@@ -23,24 +23,116 @@ class Settings_Whatsapp_MappingModal_View extends Settings_Vtiger_IndexAjax_View
             $templateData = $db->query_result_rowdata($result, 0);
         }
 
-        $components = json_decode($templateData['components'], true);
+        $mappings = array();
+        if (!empty($templateData['id'])) {
+            $mapResult = $db->pquery('SELECT * FROM vtiger_whatsapp_template_map WHERE template_id = ?', array($templateData['id']));
+            if ($db->num_rows($mapResult) > 0) {
+                while ($row = $db->fetch_array($mapResult)) {
+                    $uniqueKey = $row['component_type'] . '_' . $row['template_variable'];
+                    $mappings[$uniqueKey] = $row;
+                }
+            }
+        }
+
+        $componentsStr = html_entity_decode($templateData['components'], ENT_QUOTES, 'UTF-8');
+        $components = json_decode($componentsStr, true);
+
         $variables = array();
+        $groupedVariables = array();
 
         if (is_array($components)) {
             foreach ($components as $component) {
-                // Look for text attributes that might contain variables like {{1}}
-                if (isset($component['text'])) {
-                    preg_match_all('/\{\{(\d+)\}\}/', $component['text'], $matches);
-                    if (!empty($matches[1])) {
-                        foreach ($matches[1] as $match) {
-                            $variables[] = array(
-                                'name' => '{{' . $match . '}}',
-                                'type' => $component['type']
-                            );
+                if (isset($component['type']) && in_array($component['type'], array('BODY', 'HEADER', 'BUTTONS'))) {
+                    $type = $component['type'];
+
+                    if ($type === 'BUTTONS' && isset($component['buttons'])) {
+                        $bIndex = 1;
+                        foreach ($component['buttons'] as $btn) {
+                            $btnType = 'BUTTONS_' . $bIndex;
+                            $btnStr = json_encode($btn);
+
+                            if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $btnStr, $matches)) {
+                                $uniqueVars = array_unique($matches[1]);
+                                foreach ($uniqueVars as $match) {
+                                    $varName = '{{' . $match . '}}';
+                                    $exampleData = isset($btn['text']) ? $btn['text'] : 'Button ' . $bIndex;
+                                    $contextInfo = "Button " . $bIndex . " URL Parameter";
+
+                                    $variables[] = array(
+                                        'name' => $varName,
+                                        'type' => $btnType
+                                    );
+
+                                    $groupedVariables['BUTTONS'][] = array(
+                                        'name' => $varName,
+                                        'type' => $btnType,
+                                        'key' => $match,
+                                        'example' => $exampleData,
+                                        'context' => $contextInfo
+                                    );
+                                }
+                            }
+                            $bIndex++;
+                        }
+                    } else {
+                        $componentStr = json_encode($component);
+                        if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $componentStr, $matches)) {
+                            $uniqueVars = array_unique($matches[1]);
+
+                            $exampleValues = array();
+                            $namedExamples = array();
+
+                            if ($type == 'BODY') {
+                                if (isset($component['example']['body_text'][0])) {
+                                    $exampleValues = $component['example']['body_text'][0];
+                                } elseif (isset($component['example']['body_text_named_params'])) {
+                                    foreach ($component['example']['body_text_named_params'] as $np) {
+                                        $namedExamples[$np['param_name']] = $np['example'];
+                                    }
+                                }
+                            } elseif ($type == 'HEADER') {
+                                if (isset($component['example']['header_text'][0])) {
+                                    $exampleValues = $component['example']['header_text'];
+                                } elseif (isset($component['example']['header_text_named_params'])) {
+                                    foreach ($component['example']['header_text_named_params'] as $np) {
+                                        $namedExamples[$np['param_name']] = $np['example'];
+                                    }
+                                }
+                            }
+
+                            $varIndex = 0;
+                            foreach ($uniqueVars as $match) {
+                                $varName = '{{' . $match . '}}';
+
+                                $variables[] = array(
+                                    'name' => $varName,
+                                    'type' => $type
+                                );
+
+                                $exampleData = '';
+                                if (isset($namedExamples[$match])) {
+                                    $exampleData = $namedExamples[$match];
+                                } elseif (isset($exampleValues[$varIndex])) {
+                                    $exampleData = $exampleValues[$varIndex];
+                                }
+
+                                $groupedVariables[$type][] = array(
+                                    'name' => $varName,
+                                    'type' => $type,
+                                    'key' => $match,
+                                    'example' => $exampleData,
+                                    'context' => ''
+                                );
+                                $varIndex++;
+                            }
                         }
                     }
                 }
             }
+        }
+        foreach ($groupedVariables as $k => $v) {
+            if (empty($v))
+                unset($groupedVariables[$k]);
         }
 
         // Fetch all entity modules
@@ -77,6 +169,8 @@ class Settings_Whatsapp_MappingModal_View extends Settings_Vtiger_IndexAjax_View
         $viewer->assign('TEMPLATE_NAME', $templateData['template_name']);
         $viewer->assign('TEMPLATE_LANGUAGE', $templateData['language']);
         $viewer->assign('VARIABLES', $variables);
+        $viewer->assign('GROUPED_VARIABLES', $groupedVariables);
+        $viewer->assign('COMPONENTS', $components);
         $viewer->assign('MODULES', $modules);
         $viewer->assign('MAPPED_MODULE', $mappedModule);
         $viewer->assign('MAPPINGS', $mappings);

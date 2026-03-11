@@ -1,0 +1,1842 @@
+Array
+(
+    [data] => Array
+        (
+            [0] => Array
+                (
+                    [name] => thanks_for_reaching_us
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Thanks for reaching us
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi! Thanks for reaching Atomlines support. To help you faster, please choose the issue closest to yours:
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Order Status & Tracking
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Product Infor & Stocks
+                                                )
+
+                                            [2] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Returns & Refunds
+                                                )
+
+                                            [3] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Complaint about a Service
+                                                )
+
+                                            [4] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => My issue not listed here
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1944129102845690
+                )
+
+            [1] => Array
+                (
+                    [name] => atom_cancellation_confirmation
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}}, we've received a cancellation request for your {{2}}. Reply with YES to be assigned a new agent or NO to cancel.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => John
+                                                            [1] => Broadband
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Yes
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => No
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1398372008665353
+                )
+
+            [2] => Array
+                (
+                    [name] => atom_appointment_scheduling_address
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Technician visit
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}}, we're scheduling a technician visit to {{2}} on {{3}} between {{4}} and {{5}}. Please confirm if this time slot works for you.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => John
+                                                            [1] => 123 Maple St
+                                                            [2] => 2025-12-31
+                                                            [3] => 10:00 AM
+                                                            [4] => 2:00 PM
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Confirm
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Reschedule
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1584834719315239
+                )
+
+            [3] => Array
+                (
+                    [name] => atom_appointment_confirmation_num
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Your appointment is {{1}}
+                                    [example] => Array
+                                        (
+                                            [header_text] => Array
+                                                (
+                                                    [0] => Confirmed
+                                                )
+
+                                        )
+
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hello {{1}},
+
+Thank you for booking with {{2}}.
+
+Your appointment for {{3}} on {{4}} at {{5}} is confirmed.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => John
+                                                            [1] => Fashion Styles
+                                                            [2] => Men's haircut
+                                                            [3] => December 31, 2025
+                                                            [4] => 1:00 PM
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View details
+                                                    [url] => https://atomlines.com/
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1390175049370537
+                )
+
+            [4] => Array
+                (
+                    [name] => atom_appointment_reminder
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => IMAGE
+                                    [example] => Array
+                                        (
+                                            [header_handle] => Array
+                                                (
+                                                    [0] => https://scontent.whatsapp.net/v/t61.29466-34/534428665_1167103235596917_8689807521638574505_n.jpg?ccb=1-7&_nc_sid=8b1bef&_nc_ohc=iauRhNt8ma0Q7kNvwHE1oQe&_nc_oc=Adk_-yxEjB1e1fy4yfWa20nhyN69enLCDPz0ZNjF8RL9SDy6zrq97Cz4zKDtuWWPQbE&_nc_zt=3&_nc_ht=scontent.whatsapp.net&edm=AH51TzQEAAAA&_nc_gid=qO7EyLQuaL5yBCxsmkHeZA&_nc_tpa=Q5bMBQHUckuTx9QqFsftKe1Nuf5KdPSlxJrot58Dc1nMvNjzy05A7XLA6bA9xxOsxDO7ySvJ9XaRXYyc5A&oh=01_Q5Aa4AEydbr50uddIBiGRSHktPPrmNoEuyzhR5IrFOJg-_l0SA&oe=69D858A8
+                                                )
+
+                                        )
+
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hello {{name}},
+
+This is a reminder about your upcoming appointment with {{doctorname}} on {{date}} at {{time}}.
+
+We look forward to seeing you!
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => doctorname
+                                                            [example] => Dr Jacob
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 01/01/2026
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => time
+                                                            [example] => 18:30
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => FOOTER
+                                    [text] => Contact support for any queries
+                                )
+
+                            [3] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View details
+                                                    [url] => https://atomlines.com/appointment/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/appointment/123455
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1167103232263584
+                )
+
+            [5] => Array
+                (
+                    [name] => atom_appointment_confirmation
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => DOCUMENT
+                                    [example] => Array
+                                        (
+                                            [header_handle] => Array
+                                                (
+                                                    [0] => https://scontent.whatsapp.net/v/t61.29466-34/543124522_850281687869828_8755015581471246078_n.pdf?ccb=1-7&_nc_sid=8b1bef&_nc_ohc=4q1szDRKJZYQ7kNvwFAW2vy&_nc_oc=AdkWdws1G2OJvvFs0w0xH6r_Pyxutz7XushGjdzdCag69UgbRanaLtQWppCS-11NCy8&_nc_zt=3&_nc_ht=scontent.whatsapp.net&edm=AH51TzQEAAAA&_nc_gid=qO7EyLQuaL5yBCxsmkHeZA&_nc_tpa=Q5bMBQGpxcluYMz6GJyrnsp5a5lOfC54ri0PG3sAbdjbu789QI5ehbLFMGYV44FZaJi2Hn8NbADetxJkRQ&oh=01_Q5Aa4AH-UIZUIjg95Um2BV2dPzPJYrVpY8pZhed-yDmma0laEQ&oe=69D870C5
+                                                )
+
+                                        )
+
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hello {{name}},
+
+Thank you for booking with {{bookingplatform}}.
+
+Your appointment for {{doctorname}} on {{date}} at {{time}} is confirmed.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => bookingplatform
+                                                            [example] => booking.com
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => doctorname
+                                                            [example] => Dr Pal
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 01/01/2026
+                                                        )
+
+                                                    [4] => Array
+                                                        (
+                                                            [param_name] => time
+                                                            [example] => 16:00
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => FOOTER
+                                    [text] => Contact support for any queries
+                                )
+
+                            [3] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View details
+                                                    [url] => https://atomlines.com/appoinment/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/appoinment/122345
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 850281684536495
+                )
+
+            [6] => Array
+                (
+                    [name] => atom_appointment_custom
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Your Appointment was {{statustitle}}
+                                    [example] => Array
+                                        (
+                                            [header_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => statustitle
+                                                            [example] => Cancelled
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hello {{name}},
+
+Your upcoming appointment with {{doctor}} on {{date}} at {{time}} has been {{status}}.
+
+Let us know if you have any questions or need to reschedule.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => doctor
+                                                            [example] => Cheliyan
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 01/01/2026
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => time
+                                                            [example] => 04:00
+                                                        )
+
+                                                    [4] => Array
+                                                        (
+                                                            [param_name] => status
+                                                            [example] => Cancelled
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => FOOTER
+                                    [text] => Please contact support if needed
+                                )
+
+                            [3] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View details
+                                                    [url] => https://atomlines.com/appointment/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/appointment/91819189
+                                                        )
+
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Visit website
+                                                    [url] => https://atomlines.com/appointment/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/schedule/91819189
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1193673149498283
+                )
+
+            [7] => Array
+                (
+                    [name] => atom_auto_pay_reminder_3
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Upcoming automatic payment
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, this is to remind you of your upcoming auto-pay: 
+
+Date: {{date}}
+Account: {{accountnumber}}
+Amount: {{amount}}
+
+Thank you and have a nice day.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 20/12/2025
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => accountnumber
+                                                            [example] => 818181818
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => amount
+                                                            [example] => 300.00
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View details
+                                                    [url] => https://atomlines.com/profile/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/profile/
+                                                        )
+
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Visit website
+                                                    [url] => https://atomlines.com/order/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/order/
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1542600430398606
+                )
+
+            [8] => Array
+                (
+                    [name] => auto_pay_reminder_2
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Upcoming automatic payment
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, this is to remind you of your upcoming auto-pay: 
+
+Date: {{date}}
+Account: {{accountno}}
+
+Thank you and have a nice day.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 20/12/2025
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => accountno
+                                                            [example] => 1222334455
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View details
+                                                    [url] => https://atomlines.com/%7B%7Bpage%7D%7D{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/contact
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 853734307389206
+                )
+
+            [9] => Array
+                (
+                    [name] => atom_appointment_scheduling_address_1
+                    [previous_category] => UTILITY
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Technician visit
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, we're scheduling a technician visit to {{address}} on {{date}} . Please confirm if this time slot works for you.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => address
+                                                            [example] => Home
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 20/12/2025
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Visit website
+                                                    [url] => https://atomlines.com/%7B%7Bpage%7D%7D{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/contact
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => MARKETING
+                    [id] => 1983857895862738
+                )
+
+            [10] => Array
+                (
+                    [name] => atom_account_creation_confirmation_3
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Finalize account set-up
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}},
+
+Your new account has been created successfully. 
+
+Please verify to complete your profile.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John Doe
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Verify account
+                                                    [url] => https://atomlines.com/verify/%7B%7Bverificationcode%7D%7D{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/verify/4999999999
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 25851402691133515
+                )
+
+            [11] => Array
+                (
+                    [name] => atom_call_permission_request_1
+                    [previous_category] => UTILITY
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Would you like to receive a call from one of our representatives?
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => CALL_PERMISSION_REQUEST
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => MARKETING
+                    [sub_category] => CALL_PERMISSIONS_REQUEST
+                    [id] => 835937679331563
+                )
+
+            [12] => Array
+                (
+                    [name] => atom_appointment_scheduling
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Technician visit
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, we're scheduling a technician visit for your {{service}} on {{date}} between {{starttime}} and {{endtime}}. Please confirm if this time slot works for you.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => JohnDoe
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => service
+                                                            [example] => Repair of filter
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 17/25/2025
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => starttime
+                                                            [example] => 09:00
+                                                        )
+
+                                                    [4] => Array
+                                                        (
+                                                            [param_name] => endtime
+                                                            [example] => 10:00
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Quick Reply
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Reschedule
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1622773258707103
+                )
+
+            [13] => Array
+                (
+                    [name] => atom_payment_template
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Pay up
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, you have a payment overdue:
+
+Account: {{accountno}}
+Amount due: {{amount}}
+Due date: {{date}}
+
+Use the button below to complete payment via our website.
+Please ignore this message if you've already paid.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => John
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => accountno
+                                                            [example] => #4999999
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => amount
+                                                            [example] => 800.09
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 17/12/2025
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => FOOTER
+                                    [text] => Please ignore this message if you've already paid.
+                                )
+
+                            [3] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Pay now
+                                                    [url] => https://atomlines.com/%7B%7Bpagename%7D%7D{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/contact-us
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [sub_category] => CUSTOM
+                    [id] => 1544493373428127
+                )
+
+            [14] => Array
+                (
+                    [name] => delivery_failed_1
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Could not deliver your order
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, 
+
+We attempted to deliver your order ({{orderid}}) on {{date}} but were not successful. 
+
+Please contact us at {{phone}} to arrange re-delivery. 
+
+Thank you.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => Joseph
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => orderid
+                                                            [example] => 12222212221
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => 29/03/2025
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => phone
+                                                            [example] => 8122334455
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Manage delivery
+                                                    [url] => https://atomlines.com/%7B%7Borderid%7D%7D
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => PHONE_NUMBER
+                                                    [text] => Call us
+                                                    [phone_number] => +18148770155
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [id] => 672336582006146
+                )
+
+            [15] => Array
+                (
+                    [name] => welcome_site_v1
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Welcome Site
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, Welcome to our sit {{site}}
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => Johnanthan
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => site
+                                                            [example] => Atomlines
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => MARKETING
+                    [id] => 1155755349582843
+                )
+
+            [16] => Array
+                (
+                    [name] => shipping_update_v5
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Shipping Update
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{name}}, your order {{shipping_id}} is shipped! 🚚
+Tracking: {{tracking_url}}
+Estimated Delivery: {{date}}
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => Johnanthan
+                                                        )
+
+                                                    [1] => Array
+                                                        (
+                                                            [param_name] => shipping_id
+                                                            [example] => 31271527612
+                                                        )
+
+                                                    [2] => Array
+                                                        (
+                                                            [param_name] => tracking_url
+                                                            [example] => https://track.com/31271527612
+                                                        )
+
+                                                    [3] => Array
+                                                        (
+                                                            [param_name] => date
+                                                            [example] => March 30, 2025
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Track Order
+                                                    [url] => https://atomlines.com/track/%7B%7Bshipping_id%7D%7D
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/track/31271527612
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [id] => 1271911101027259
+                )
+
+            [17] => Array
+                (
+                    [name] => welcome_user
+                    [parameter_format] => NAMED
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hello {{name}}
+Welcome to the atomlines website.
+                                    [example] => Array
+                                        (
+                                            [body_text_named_params] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [param_name] => name
+                                                            [example] => Joseph
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en
+                    [status] => APPROVED
+                    [category] => MARKETING
+                    [sub_category] => CUSTOM
+                    [id] => 1181179646872678
+                )
+
+            [18] => Array
+                (
+                    [name] => shipping_update_v2
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Shipping Update
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}}, your order {{2}} is shipped! 🚚
+Tracking: {{3}}
+Estimated Delivery: {{4}}
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => Johnanthan
+                                                            [1] => 31271527612
+                                                            [2] => https://track.com/31271527612
+                                                            [3] => March 30, 2025
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Track Order
+                                                    [url] => https://atomlines.com/track/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/profile/210000
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [id] => 2156454474873386
+                )
+
+            [19] => Array
+                (
+                    [name] => welcome_message_v2
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Welcome User
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}}, Welcome to here, 
+Kindly check your profile page for further instruction on how to use the platform.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => Johnanthan
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en
+                    [status] => APPROVED
+                    [category] => MARKETING
+                    [id] => 2613188288886667
+                )
+
+            [20] => Array
+                (
+                    [name] => order_viewer_idealcrm_b
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Upcoming automatic payment
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}},
+
+Your payment for order #{{2}} scheduled on {{3}} for {{4}}.
+
+Kindly check your order page to initiate payment for the extension {{5}} purchase.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => John
+                                                            [1] => 1920292001910
+                                                            [2] => Jan 1, 2024
+                                                            [3] => $12.34
+                                                            [4] => Atom Pipeline
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View Order
+                                                    [url] => https://atomlines.com/
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/order/{{2}}
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [id] => 651701617674741
+                )
+
+            [21] => Array
+                (
+                    [name] => order_viewer_idealcrm_a
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Upcoming automatic payment
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}},
+
+Your payment for order #{{2}} scheduled on {{3}} for {{4}}.
+
+Kindly check your order page to initiate payment for the extension {{5}} purchase.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => John
+                                                            [1] => 1920292001910
+                                                            [2] => Jan 1, 2024
+                                                            [3] => $12.34
+                                                            [4] => Atom Pipeline
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View Order
+                                                    [url] => https://atomlines.com/
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/order/{{2}}
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [id] => 1354662345555020
+                )
+
+            [22] => Array
+                (
+                    [name] => welcome_template_mar_14_2025_d
+                    [previous_category] => UTILITY
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Welcome message
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}},
+
+Welcome to Atomlines inc.
+
+Kindly check your profile page for further instruction on how to use the platform.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => John
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Visit Site
+                                                    [url] => https://atomlines.com/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => MARKETING
+                    [id] => 1846076416149895
+                )
+
+            [23] => Array
+                (
+                    [name] => campaign_cool_aid
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hello {{1}}
+Have you heard about the new technology called {{2}}. Which fullfill the {{3}} needs.
+
+Come check it out at our site for more details
+
+Thanks
+{{4}}
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => Joseph Raja
+                                                            [1] => Marketting King
+                                                            [2] => Marketting
+                                                            [3] => Atomlines
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => Visit Page
+                                                    [url] => https://atomlines.com/{{1}}
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/{{5}}
+                                                        )
+
+                                                )
+
+                                            [1] => Array
+                                                (
+                                                    [type] => QUICK_REPLY
+                                                    [text] => Stop promotions
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en
+                    [status] => APPROVED
+                    [category] => MARKETING
+                    [sub_category] => CUSTOM
+                    [id] => 1631822987460299
+                )
+
+            [24] => Array
+                (
+                    [name] => order_viewer_idealcrm
+                    [parameter_format] => POSITIONAL
+                    [components] => Array
+                        (
+                            [0] => Array
+                                (
+                                    [type] => HEADER
+                                    [format] => TEXT
+                                    [text] => Upcoming automatic payment
+                                )
+
+                            [1] => Array
+                                (
+                                    [type] => BODY
+                                    [text] => Hi {{1}},
+
+Your payment for order #{{2}} scheduled on {{3}} for {{4}}.
+
+Kindly check your order page to initiate payment for the extension {{5}} purchase.
+                                    [example] => Array
+                                        (
+                                            [body_text] => Array
+                                                (
+                                                    [0] => Array
+                                                        (
+                                                            [0] => John
+                                                            [1] => 1920292001910
+                                                            [2] => Jan 1, 2024
+                                                            [3] => $12.34
+                                                            [4] => Atom Pipeline
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                            [2] => Array
+                                (
+                                    [type] => BUTTONS
+                                    [buttons] => Array
+                                        (
+                                            [0] => Array
+                                                (
+                                                    [type] => URL
+                                                    [text] => View account
+                                                    [url] => https://atomlines.com/
+                                                    [example] => Array
+                                                        (
+                                                            [0] => https://atomlines.com/order/{{2}}
+                                                        )
+
+                                                )
+
+                                        )
+
+                                )
+
+                        )
+
+                    [language] => en_US
+                    [status] => APPROVED
+                    [category] => UTILITY
+                    [id] => 3668092226822013
+                )
+
+        )
+
+    [paging] => Array
+        (
+            [cursors] => Array
+                (
+                    [before] => QVFIU25sMHFwSEpwVEdzNElzckhNTzVOSDlBeXh3eDI3RHdRUUt2TmxWekwtVkh2QjhNYUJCOXVqVjNfaFNBbmNkU0k0WnFuN3FYUDEtYVhJSkhEOUdxeGVR
+                    [after] => QVFIUzk1ZAjJDWGRoNDdNb1dCZAkdUYWJmVG9NcnRSYno1eWlBN3FQZADFyYWtTN1JXQzdqYUdjTjVBR2tmVVlpYkVJd3FZAbTN0QlB4N1FhMTIyYnhXTVhZAdmZAB
+                )
+
+            [next] => https://graph.facebook.com/v20.0/347901028417242/message_templates?limit=25&after=QVFIUzk1ZAjJDWGRoNDdNb1dCZAkdUYWJmVG9NcnRSYno1eWlBN3FQZADFyYWtTN1JXQzdqYUdjTjVBR2tmVVlpYkVJd3FZAbTN0QlB4N1FhMTIyYnhXTVhZAdmZAB
+        )
+
+)
+
+

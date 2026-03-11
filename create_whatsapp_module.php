@@ -22,7 +22,10 @@ class WhatsappModuleSetup
 
 
         echo "Initializing Module and Fields...<br>";
-        $custom->postInstall();
+        //$custom->postInstall();
+
+        echo "Adding Header Scripts...<br>";
+        $custom->addHeaderScript();
 
         echo "Setup completed successfully.<br>";
     }

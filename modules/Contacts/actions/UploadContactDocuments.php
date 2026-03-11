@@ -30,6 +30,11 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
             return;
         }
 
+        $folderId = $request->get('folderid');
+        if (empty($folderId)) {
+            $folderId = 1;
+        }
+
         $files = $_FILES["documents"];
         $createdDocumentIds = [];
 
@@ -48,7 +53,7 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
             }
 
             // Create document ONCE per file
-            $documentId = $this->createDocumentFromFile($fileDetails);
+            $documentId = $this->createDocumentFromFile($fileDetails, $folderId);
             if (!$documentId) {
                 continue;
             }
@@ -119,7 +124,7 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
     /* =========================================
      * DOCUMENT CREATION (UNCHANGED, STABLE)
      * ========================================= */
-    private function createDocumentFromFile($fileDetails)
+    private function createDocumentFromFile($fileDetails, $folderId = 1)
     {
         $db = PearDatabase::getInstance();
         $currentUserModel = Users_Record_Model::getCurrentUserModel();
@@ -188,7 +193,7 @@ class Contacts_UploadContactDocuments_Action extends Vtiger_Action_Controller
         $document->column_fields["filename"] = $fileName;
         $document->column_fields["filestatus"] = 1;
         $document->column_fields["filelocationtype"] = "I";
-        $document->column_fields["folderid"] = 1;
+        $document->column_fields["folderid"] = $folderId;
         $document->column_fields["filesize"] = $fileSize;
         $document->column_fields["assigned_user_id"] = $userId;
         $document->save("Documents");

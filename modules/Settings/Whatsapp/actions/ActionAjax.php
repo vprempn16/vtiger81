@@ -155,21 +155,52 @@ class Settings_Whatsapp_ActionAjax_Action extends Settings_Vtiger_Index_Action
                     // Insert template variables into mapping table
                     if (isset($template['components']) && is_array($template['components'])) {
                         foreach ($template['components'] as $component) {
-                            if (isset($component['text'])) {
-                                preg_match_all('/\{\{(\d+)\}\}/', $component['text'], $matches);
+                            $componentBaseType = $component['type'];
+
+                            if ($componentBaseType === 'BUTTONS' && isset($component['buttons'])) {
+                                $bIndex = 1;
+                                foreach ($component['buttons'] as $btn) {
+                                    $componentType = 'BUTTONS_' . $bIndex;
+                                    $btnStr = json_encode($btn);
+                                    preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $btnStr, $matches);
+                                    if (!empty($matches[1])) {
+                                        $uniqueVars = array_unique($matches[1]);
+                                        foreach ($uniqueVars as $match) {
+                                            $variableName = '{{' . $match . '}}';
+
+                                            $mapCheck = $db->pquery(
+                                                'SELECT id FROM vtiger_whatsapp_template_map WHERE template_id = ? AND template_variable = ? AND component_type = ?',
+                                                array($localTemplateId, $variableName, $componentType)
+                                            );
+
+                                            if ($db->num_rows($mapCheck) == 0) {
+                                                $db->pquery(
+                                                    'INSERT INTO vtiger_whatsapp_template_map (template_id, template_language, template_variable, component_type, crm_module, crm_field) VALUES (?, ?, ?, ?, ?, ?)',
+                                                    array($localTemplateId, $template['language'], $variableName, $componentType, null, null)
+                                                );
+                                            }
+                                        }
+                                    }
+                                    $bIndex++;
+                                }
+                            } else {
+                                $componentType = $componentBaseType;
+                                $componentStr = json_encode($component);
+                                preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $componentStr, $matches);
                                 if (!empty($matches[1])) {
-                                    foreach ($matches[1] as $match) {
+                                    $uniqueVars = array_unique($matches[1]);
+                                    foreach ($uniqueVars as $match) {
                                         $variableName = '{{' . $match . '}}';
 
                                         $mapCheck = $db->pquery(
                                             'SELECT id FROM vtiger_whatsapp_template_map WHERE template_id = ? AND template_variable = ? AND component_type = ?',
-                                            array($localTemplateId, $variableName, $component['type'])
+                                            array($localTemplateId, $variableName, $componentType)
                                         );
 
                                         if ($db->num_rows($mapCheck) == 0) {
                                             $db->pquery(
                                                 'INSERT INTO vtiger_whatsapp_template_map (template_id, template_language, template_variable, component_type, crm_module, crm_field) VALUES (?, ?, ?, ?, ?, ?)',
-                                                array($localTemplateId, $template['language'], $variableName, $component['type'], null, null)
+                                                array($localTemplateId, $template['language'], $variableName, $componentType, null, null)
                                             );
                                         }
                                     }

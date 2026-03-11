@@ -1,0 +1,52 @@
+[
+    {
+        "type": "HEADER",
+        "format": "TEXT",
+        "text": "Upcoming automatic payment"
+    },
+    {
+        "type": "BODY",
+        "text": "Hi {{name}}, this is to remind you of your upcoming auto-pay: \n\nDate: {{date}}\nAccount: {{accountnumber}}\nAmount: {{amount}}\n\nThank you and have a nice day.",
+        "example": {
+            "body_text_named_params": [
+                {
+                    "param_name": "name",
+                    "example": "John"
+                },
+                {
+                    "param_name": "date",
+                    "example": "20\/12\/2025"
+                },
+                {
+                    "param_name": "accountnumber",
+                    "example": "818181818"
+                },
+                {
+                    "param_name": "amount",
+                    "example": "300.00"
+                }
+            ]
+        }
+    },
+    {
+        "type": "BUTTONS",
+        "buttons": [
+            {
+                "type": "URL",
+                "text": "View details",
+                "url": "https:\/\/atomlines.com\/profile\/{{1}}",
+                "example": [
+                    "https:\/\/atomlines.com\/profile\/"
+                ]
+            },
+            {
+                "type": "URL",
+                "text": "Visit website",
+                "url": "https:\/\/atomlines.com\/order\/{{1}}",
+                "example": [
+                    "https:\/\/atomlines.com\/order\/"
+                ]
+            }
+        ]
+    }
+]
