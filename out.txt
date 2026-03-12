@@ -1,0 +1,25 @@
+ID: 76 | Name: thanks_for_reaching_us | Channel: 1 | Module:  | Status: APPROVED
+ID: 77 | Name: atom_cancellation_confirmation | Channel: 1 | Module: Leads | Status: APPROVED
+ID: 78 | Name: atom_appointment_scheduling_address | Channel: 1 | Module: Contacts | Status: APPROVED
+ID: 79 | Name: atom_appointment_confirmation_num | Channel: 1 | Module:  | Status: APPROVED
+ID: 80 | Name: atom_appointment_reminder | Channel: 1 | Module:  | Status: APPROVED
+ID: 81 | Name: atom_appointment_confirmation | Channel: 1 | Module:  | Status: APPROVED
+ID: 82 | Name: atom_appointment_custom | Channel: 1 | Module: Contacts | Status: APPROVED
+ID: 83 | Name: atom_auto_pay_reminder_3 | Channel: 1 | Module:  | Status: APPROVED
+ID: 84 | Name: auto_pay_reminder_2 | Channel: 1 | Module:  | Status: APPROVED
+ID: 85 | Name: atom_appointment_scheduling_address_1 | Channel: 1 | Module:  | Status: APPROVED
+ID: 86 | Name: atom_account_creation_confirmation_3 | Channel: 1 | Module:  | Status: APPROVED
+ID: 87 | Name: atom_call_permission_request_1 | Channel: 1 | Module:  | Status: APPROVED
+ID: 88 | Name: atom_appointment_scheduling | Channel: 1 | Module:  | Status: APPROVED
+ID: 89 | Name: atom_payment_template | Channel: 1 | Module:  | Status: APPROVED
+ID: 90 | Name: delivery_failed_1 | Channel: 1 | Module:  | Status: APPROVED
+ID: 91 | Name: welcome_site_v1 | Channel: 1 | Module:  | Status: APPROVED
+ID: 92 | Name: shipping_update_v5 | Channel: 1 | Module:  | Status: APPROVED
+ID: 93 | Name: welcome_user | Channel: 1 | Module:  | Status: APPROVED
+ID: 94 | Name: shipping_update_v2 | Channel: 1 | Module:  | Status: APPROVED
+ID: 95 | Name: welcome_message_v2 | Channel: 1 | Module:  | Status: APPROVED
+ID: 96 | Name: order_viewer_idealcrm_b | Channel: 1 | Module:  | Status: APPROVED
+ID: 97 | Name: order_viewer_idealcrm_a | Channel: 1 | Module:  | Status: APPROVED
+ID: 98 | Name: welcome_template_mar_14_2025_d | Channel: 1 | Module:  | Status: APPROVED
+ID: 99 | Name: campaign_cool_aid | Channel: 1 | Module:  | Status: APPROVED
+ID: 100 | Name: order_viewer_idealcrm | Channel: 1 | Module:  | Status: APPROVED

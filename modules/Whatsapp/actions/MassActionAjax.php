@@ -10,7 +10,11 @@
 
 require_once 'modules/Whatsapp/Services/WhatsAppApiService.php';
 
-class Whatsapp_MassActionAjax_Action extends Vtiger_MassActionAjax_Action {
+class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
+
+    public function checkPermission(Vtiger_Request $request) {
+        return true;
+    }
 
     public function process(Vtiger_Request $request) {
         $mode = $request->getMode();
@@ -69,7 +73,7 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_MassActionAjax_Action {
 
         // 2. We need to parse this template using the record's values.
         // The mappings are in `vtiger_whatsapp_template_map`
-        $mapQuery = "SELECT component_type, button_index, template_variable, crm_field 
+        $mapQuery = "SELECT component_type, template_variable, crm_field 
                      FROM vtiger_whatsapp_template_map 
                      WHERE template_id = ?";
         $mapResult = $db->pquery($mapQuery, array($templateId));
@@ -77,9 +81,6 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_MassActionAjax_Action {
         $mappings = array();
         while($row = $db->fetch_array($mapResult)) {
             $key = $row['component_type'];
-            if($key == 'BUTTONS') {
-                $key .= '_' . $row['button_index'];
-            }
             $mappings[$key][$row['template_variable']] = $row['crm_field'];
         }
 

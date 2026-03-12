@@ -296,7 +296,7 @@ jQuery.Class("Contacts_DocumentUpload_Js", {
 });
 
 jQuery(document).ready(function () {
-	let instance = new Contacts_DocumentUpload_Js();
-	instance.registerEvents();
+	//let instance = new Contacts_DocumentUpload_Js();
+	//instance.registerEvents();
 });
 
