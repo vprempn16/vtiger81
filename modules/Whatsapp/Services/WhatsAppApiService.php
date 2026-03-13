@@ -640,13 +640,14 @@ class WhatsAppApiService
     public function buildTemplateComponents($templateId, $recordId, $sourceModule)
     {
         $db = PearDatabase::getInstance();
-        $query = "SELECT template_name, components, format FROM vtiger_whatsapp_templates WHERE id = ?";
+        $query = "SELECT template_name, language, components, format FROM vtiger_whatsapp_templates WHERE id = ?";
         $result = $db->pquery($query, array($templateId));
         if ($db->num_rows($result) === 0)
             return array('success' => false, 'message' => 'Template not found');
 
         $row = $db->fetch_array($result);
         $templateName = $row['template_name'];
+        $language = $row['language'];
         $format = $row['format'];
         $components = json_decode(htmlspecialchars_decode($row['components'], ENT_QUOTES), true);
 
@@ -689,24 +690,27 @@ class WhatsAppApiService
             }
         }
 
-        return array('success' => true, 'template_name' => $templateName, 'components' => $builtComponents);
+        return array('success' => true, 'template_name' => $templateName, 'language' => $language, 'components' => $builtComponents);
     }
 
     private function buildParams($text, $values, $isNamed)
     {
         $params = array();
-        if ($isNamed) {
-            foreach ($values as $name => $val) {
-                $cleanName = str_replace(array('{{', '}}'), '', $name);
-                $params[] = array('type' => 'text', 'text' => $val, 'parameter_name' => $cleanName);
-            }
-        } else {
-            // Find all {{variable}} patterns in the text
-            if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $text, $matches)) {
-                foreach ($matches[0] as $fullMatch) {
-                    $val = isset($values[$fullMatch]) ? $values[$fullMatch] : '';
-                    $params[] = array('type' => 'text', 'text' => (string)$val);
+        // Regex to find all {{variable}} patterns
+        if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $text, $matches)) {
+            foreach ($matches[1] as $index => $varName) {
+                $fullMatch = $matches[0][$index];
+                $val = isset($values[$fullMatch]) ? $values[$fullMatch] : '';
+
+                $param = array('type' => 'text', 'text' => (string) $val);
+
+                // Meta NAMED templates require parameter_name. 
+                // We use isNamed flag OR check if the variable itself is non-numeric.
+                if ($isNamed || !is_numeric($varName)) {
+                    $param['parameter_name'] = $varName;
                 }
+
+                $params[] = $param;
             }
         }
         return $params;

@@ -144,7 +144,7 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
                         }
                         $details['templateName'] = $build['template_name'];
                         $details['components'] = $build['components'];
-                        $details['language'] = $request->get('language') ?: 'en_US';
+                        $details['language'] = $build['language'];
                     }
 
                     $sendData = array(

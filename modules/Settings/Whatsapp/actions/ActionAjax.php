@@ -125,22 +125,25 @@ class Settings_Whatsapp_ActionAjax_Action extends Settings_Vtiger_Index_Action
                         array($template['id'], $recordId)
                     );
 
+                    $format = $template['format'] ?? 'POSITIONAL';
+
                     $params = array(
                         $template['name'],
                         $template['status'],
                         $template['category'],
                         $template['language'],
                         json_encode($template['components']),
+                        $format,
                         $template['id'],
                         $recordId
                     );
 
                     if ($db->num_rows($check)) {
-                        $query = 'UPDATE vtiger_whatsapp_templates SET template_name=?, status=?, category=?, language=?, components=? WHERE template_id=? AND whatsapp_channel_id=?';
+                        $query = 'UPDATE vtiger_whatsapp_templates SET template_name=?, status=?, category=?, language=?, components=?, format=? WHERE template_id=? AND whatsapp_channel_id=?';
                         $db->pquery($query, $params);
                         $localTemplateId = $db->query_result($check, 0, 'id');
                     } else {
-                        $query = 'INSERT INTO vtiger_whatsapp_templates (template_name, status, category, language, components, template_id, whatsapp_channel_id) VALUES (?, ?, ?, ?, ?, ?, ?)';
+                        $query = 'INSERT INTO vtiger_whatsapp_templates (template_name, status, category, language, components, format, template_id, whatsapp_channel_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
                         $db->pquery($query, $params);
                         $localTemplateId = $db->getLastInsertID();
                     }

@@ -36,7 +36,8 @@ We established the core back-end tables to store WhatsApp configurations and imp
 * **Features**:
   1. **Select2 Stability**: Reliable module switching without element duplication.
   2. **Named Variable Support**: Supports Meta's newer templates utilizing named placeholders (e.g., `{{doctor}}`, `{{date}}`).
-  3. **Meta Example Fetching**: UI displays variables alongside actual example data from Meta.
+  3. **Multi-Language Detection**: Automatically detects the correct language code for each template (e.g., `en`, `hi`, `en_US`) from the database, preventing "template does not exist" errors caused by localized language mismatches.
+  4. **Meta Example Fetching**: UI displays variables alongside actual example data from Meta.
 
 ---
 
