@@ -95,14 +95,15 @@ class Settings_Whatsapp_Record_Model extends Settings_Vtiger_Record_Model
             $this->get('phone_number_id'),
             $this->get('business_id'),
             $this->get('access_token'),
+            ($this->get('default_country_code') ? $this->get('default_country_code') : '91'),
             $this->get('is_active') ? 1 : 0
         );
 
         if ($id) {
-            $query = 'UPDATE vtiger_whatsapp_channels SET name=?, description=?, app_id=?, app_secret=?, phone_number_id=?, business_id=?, access_token=?, is_active=? WHERE id=?';
+            $query = 'UPDATE vtiger_whatsapp_channels SET name=?, description=?, app_id=?, app_secret=?, phone_number_id=?, business_id=?, access_token=?, default_country_code=?, is_active=? WHERE id=?';
             $params[] = $id;
         } else {
-            $query = 'INSERT INTO vtiger_whatsapp_channels(name, description, app_id, app_secret, phone_number_id, business_id, access_token, is_active) VALUES(?, ?, ?, ?, ?, ?, ?, ?)';
+            $query = 'INSERT INTO vtiger_whatsapp_channels(name, description, app_id, app_secret, phone_number_id, business_id, access_token, default_country_code, is_active) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)';
         }
         $db->pquery($query, $params);
         if (!$id) {

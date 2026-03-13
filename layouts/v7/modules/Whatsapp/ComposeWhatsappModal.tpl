@@ -27,11 +27,9 @@
                                 <option value="">{vtranslate('LBL_SELECT_OPTION', $MODULE)}</option>
                                 {foreach key=FIELD_NAME item=PHONE_LABEL from=$PHONE_FIELDS}
                                     {assign var=RECORD_PHONE value=$RECORD_PHONE_NUMBERS[$FIELD_NAME]}
-                                    {if !empty($RECORD_PHONE)}
-                                        <option value="{$RECORD_PHONE}" selected>{$PHONE_LABEL}: {$RECORD_PHONE}</option>
-                                    {else}
-                                        <option value="">{$PHONE_LABEL}: {vtranslate('LBL_NOT_FOUND', $MODULE)}</option>
-                                    {/if}
+                                    <option value="{$FIELD_NAME}" {if !empty($RECORD_PHONE)}selected{/if}>
+                                        {$PHONE_LABEL}{if !empty($RECORD_PHONE)}: {$RECORD_PHONE}{/if}
+                                    </option>
                                 {/foreach}
                             </select>
                         </div>

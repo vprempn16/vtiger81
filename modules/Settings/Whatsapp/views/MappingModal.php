@@ -145,7 +145,8 @@ class Settings_Whatsapp_MappingModal_View extends Settings_Vtiger_IndexAjax_View
             $mapResult = $db->pquery('SELECT * FROM vtiger_whatsapp_template_map WHERE template_id = ?', array($templateData['id']));
             for ($i = 0; $i < $db->num_rows($mapResult); $i++) {
                 $row = $db->query_result_rowdata($mapResult, $i);
-                $mappings[$row['template_variable']] = $row;
+                $uniqueKey = $row['component_type'] . '_' . $row['template_variable'];
+                $mappings[$uniqueKey] = $row;
             }
         }
 

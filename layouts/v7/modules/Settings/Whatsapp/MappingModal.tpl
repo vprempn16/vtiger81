@@ -53,14 +53,15 @@
                                         {/if}
                                     </label>
                                     <div class="col-lg-8" style="padding-top: 3px;">
-                                        <select class="select2 crm-field-select" name="mapping[{$VARIABLE.type}][{$VARIABLE.name}]" style="width: 100%;">
-                                            <option value="">{vtranslate('LBL_SELECT_OPTION', $QUALIFIED_MODULE)}</option>
-                                            {if !empty($MODULE_FIELDS)}
-                                                {foreach item=FIELD_LABEL key=FIELD_NAME from=$MODULE_FIELDS}
-                                                    <option value="{$FIELD_NAME}" {if isset($MAPPINGS[$VAR_NAME]) && $MAPPINGS[$VAR_NAME]['crm_field'] eq $FIELD_NAME}selected{/if}>{$FIELD_LABEL}</option>
-                                                {/foreach}
-                                            {/if}
-                                        </select>
+                                            <select class="select2 crm-field-select" name="mapping[{$VARIABLE.type}][{$VARIABLE.name}]" style="width: 100%;">
+                                                <option value="">{vtranslate('LBL_SELECT_OPTION', $QUALIFIED_MODULE)}</option>
+                                                {if !empty($MODULE_FIELDS)}
+                                                    {assign var=MAPPING_KEY value=$VARIABLE.type|cat:'_'|cat:$VAR_NAME}
+                                                    {foreach item=FIELD_LABEL key=FIELD_NAME from=$MODULE_FIELDS}
+                                                        <option value="{$FIELD_NAME}" {if isset($MAPPINGS[$MAPPING_KEY]) && $MAPPINGS[$MAPPING_KEY]['crm_field'] eq $FIELD_NAME}selected{/if}>{$FIELD_LABEL}</option>
+                                                    {/foreach}
+                                                {/if}
+                                            </select>
                                     </div>
                                 </div>
                             {/foreach}

@@ -47,4 +47,6 @@ $languageStrings = array(
     'JS_CHANNEL_SAVED_SUCCESSFULLY' => 'Channel saved successfully',
     'JS_CHANNEL_DELETED_SUCCESSFULLY' => 'Channel deleted successfully',
     'JS_TEMPLATES_SYNCED_SUCCESSFULLY' => 'Templates synced successfully',
+    'LBL_DEFAULT_COUNTRY_CODE' => 'Default Country Code',
+    'LBL_DEFAULT_COUNTRY_CODE_HELP' => 'This code will be prepended to 10-digit numbers that don\'t have a country code (e.g., 91 for India).',
 );

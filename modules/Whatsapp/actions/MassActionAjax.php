@@ -31,20 +31,8 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
         $channelId = $request->get('channel_id');
         $sourceModule = $request->get('source_module');
         
-        $db = PearDatabase::getInstance();
-        $query = "SELECT id, template_name, language FROM vtiger_whatsapp_templates 
-                  WHERE whatsapp_channel_id = ? AND module = ? AND status = 'APPROVED'";
-        
-        $result = $db->pquery($query, array($channelId, $sourceModule));
-        $templates = array();
-        
-        while($row = $db->fetch_array($result)) {
-            $templates[] = array(
-                'id' => $row['id'],
-                'name' => $row['template_name'],
-                'language' => $row['language']
-            );
-        }
+        $apiService = new WhatsAppApiService($channelId);
+        $templates = $apiService->getTemplatesByChannel($channelId, $sourceModule);
 
         $response = new Vtiger_Response();
         $response->setResult($templates);
@@ -56,109 +44,131 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
         $recordId = $request->get('record');
         $sourceModule = $request->get('source_module');
 
-        $db = PearDatabase::getInstance();
-        // 1. Get raw template components
-        $query = "SELECT components FROM vtiger_whatsapp_templates WHERE id = ?";
-        $result = $db->pquery($query, array($templateId));
+        // Note: For preview, we don't strictly need the channel instantiated with API tokens,
+        // but we pass a dummy '1' or null just to instantiate the service if needed.
+        $apiService = new WhatsAppApiService(null);
+        $result = $apiService->getTemplatePreview($templateId, $recordId, $sourceModule);
         
-        if($db->num_rows($result) === 0) {
+        $response = new Vtiger_Response();
+        if ($result['success']) {
+            $response->setResult(array('preview_html' => $result['preview_html'], 'isValid' => true));
+        } else {
+            // Still return result so the frontend can display the error HTML nicely in the preview box
+            $response->setResult(array('preview_html' => isset($result['preview_html']) ? $result['preview_html'] : $result['message'], 'isValid' => false));
+        }
+        $response->emit();
+    }
+
+    public function sendWhatsappMessage(Vtiger_Request $request) {
+        $channelId = $request->get('channel_id');
+        $type = $request->get('type');
+        $details = $request->get('details');
+        if (is_string($details)) $details = json_decode($details, true);
+        
+        $recipients = $request->get('recipients'); // JSON array of field names
+        if (is_string($recipients)) $recipients = json_decode($recipients, true);
+        
+        $selectedIds = $request->get('selected_ids');
+        if (is_string($selectedIds)) $selectedIds = json_decode($selectedIds, true);
+        if (empty($selectedIds)) $selectedIds = array($request->get('record'));
+
+        $sourceModule = $request->get('source_module');
+
+        $apiService = new WhatsAppApiService($channelId);
+        $check = $apiService->validateAccount();
+        if (!$check['success']) {
             $response = new Vtiger_Response();
-            $response->setError(500, 'Template not found');
+            $response->setError(1, $check['message']);
             $response->emit();
             return;
         }
 
-        $componentsJson = $db->query_result($result, 0, 'components');
-        $components = json_decode($componentsJson, true);
-
-        // 2. We need to parse this template using the record's values.
-        // The mappings are in `vtiger_whatsapp_template_map`
-        $mapQuery = "SELECT component_type, template_variable, crm_field 
-                     FROM vtiger_whatsapp_template_map 
-                     WHERE template_id = ?";
-        $mapResult = $db->pquery($mapQuery, array($templateId));
-        
-        $mappings = array();
-        while($row = $db->fetch_array($mapResult)) {
-            $key = $row['component_type'];
-            $mappings[$key][$row['template_variable']] = $row['crm_field'];
+        // Handle Media Upload if present
+        if (!empty($_FILES['whatsapp_media']['name'])) {
+            $mediaFile = $_FILES['whatsapp_media'];
+            $uploadResult = $apiService->uploadMediaToWhatsApp($mediaFile['tmp_name'], $mediaFile['type'], $mediaFile['name']);
+            if ($uploadResult['success']) {
+                $type = 'media';
+                $details['media_id'] = $uploadResult['media_id'];
+                $details['media_record_id'] = null; // We might want to link this to a Vtiger Document later
+                $details['media_type'] = explode('/', $mediaFile['type'])[0]; 
+                if (!empty($details['text'])) {
+                    $details['caption'] = $details['text'];
+                }
+            } else {
+                $response = new Vtiger_Response();
+                $response->setError(1, "Media Upload Failed: " . $uploadResult['message']);
+                $response->emit();
+                return;
+            }
         }
 
-        $recordModel = false;
-        if(!empty($recordId)) {
-            $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
-        }
-
-        $previewHtml = "";
-
-        // Iterate standard components: HEADER, BODY, FOOTER, BUTTONS
-        foreach($components as $comp) {
-            $type = strtoupper($comp['type']);
-            
-            if($type === 'HEADER') {
-                $text = isset($comp['text']) ? $comp['text'] : '';
-                // Example: We need to replace {{1}} with the mapped value
-                $text = $this->replaceVariables($text, 'HEADER', $mappings, $recordModel);
-                if($comp['format'] === 'IMAGE' || $comp['format'] === 'DOCUMENT' || $comp['format'] === 'VIDEO') {
-                    $previewHtml .= "<div><i class='fa fa-paperclip'></i> [Media Header: {$comp['format']}]</div>";
-                }
-                if(!empty($text)) {
-                    $previewHtml .= "<strong>{$text}</strong><br><br>";
-                }
-            } 
-            else if($type === 'BODY') {
-                $text = isset($comp['text']) ? $comp['text'] : '';
-                $text = $this->replaceVariables($text, 'BODY', $mappings, $recordModel);
-                $previewHtml .= "<div>" . nl2br(htmlspecialchars($text)) . "</div><br>";
-            }
-            else if($type === 'FOOTER') {
-                $text = isset($comp['text']) ? $comp['text'] : '';
-                $previewHtml .= "<small class='text-muted'>" . htmlspecialchars($text) . "</small><br>";
-            }
-            else if($type === 'BUTTONS') {
-                $previewHtml .= "<div style='margin-top:10px;'>";
-                foreach($comp['buttons'] as $index => $btn) {
-                    $btnType = $btn['type'];
-                    $btnText = $btn['text'];
-                    if($btnType == 'URL') {
-                       $btnUrl = $this->replaceVariables($btn['url'], 'BUTTONS_' . $index, $mappings, $recordModel);
-                       $previewHtml .= "<button class='btn btn-default btn-sm' disabled><i class='fa fa-external-link'></i> {$btnText} <br><small>({$btnUrl})</small></button> ";
-                    } else {
-                       $previewHtml .= "<button class='btn btn-default btn-sm' disabled>{$btnText}</button> ";
+        $results = array();
+        foreach ($selectedIds as $recordId) {
+            if (empty($recordId)) continue;
+            try {
+                $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
+                foreach ($recipients as $phoneField) {
+                    $to = $recordModel->get($phoneField);
+                    if (empty($to)) {
+                        $results[] = array('record' => $recordId, 'field' => $phoneField, 'success' => false, 'error' => 'Phone number empty');
+                        continue;
                     }
+
+                    // Normalize NO earlier so it's used for both Log and Send
+                    $normalizedTo = $apiService->formatPhoneNumber($to, $recordModel);
+
+                    $logData = array(
+                        'direction' => 'outgoing',
+                        'crm_module' => $sourceModule,
+                        'crm_field' => $phoneField,
+                        'crm_field_value' => $normalizedTo,
+                        'whatsapp_no' => $normalizedTo,
+                        'related_module' => $sourceModule,
+                        'related_id' => $recordId,
+                        'assigned_user_id' => Users_Record_Model::getCurrentUserModel()->getId()
+                    );
+
+                    if ($type === 'template') {
+                        $templateId = $details['template_id'];
+                        $logData['template_id'] = $templateId;
+                        $validate = $apiService->validateTemplateMappings($templateId, $sourceModule);
+                        if (!$validate['success']) {
+                            $results[] = array('record' => $recordId, 'field' => $phoneField, 'success' => false, 'error' => $validate['message']);
+                            continue;
+                        }
+                        $build = $apiService->buildTemplateComponents($templateId, $recordId, $sourceModule);
+                        if (!$build['success']) {
+                            $results[] = array('record' => $recordId, 'field' => $phoneField, 'success' => false, 'error' => $build['message']);
+                            continue;
+                        }
+                        $details['templateName'] = $build['template_name'];
+                        $details['components'] = $build['components'];
+                        $details['language'] = $request->get('language') ?: 'en_US';
+                    }
+
+                    $sendData = array(
+                        'type' => $type,
+                        'to' => $normalizedTo,
+                        'details' => $details, // This now contains updated template info too
+                        'logData' => $logData  // This now contains template_id
+                    );
+
+                    $res = $apiService->sendWhatsappMessage($sendData);
+                    $results[] = array(
+                        'record' => $recordId,
+                        'field' => $phoneField,
+                        'success' => $res['success'],
+                        'message' => $res['success'] ? 'Sent' : $res['message']
+                    );
                 }
-                $previewHtml .= "</div>";
+            } catch (Exception $e) {
+                $results[] = array('record' => $recordId, 'success' => false, 'error' => $e->getMessage());
             }
         }
 
         $response = new Vtiger_Response();
-        $response->setResult(array('preview_html' => $previewHtml));
-        $response->emit();
-    }
-
-    private function replaceVariables($text, $componentContext, $mappings, $recordModel) {
-        if(empty($text) || empty($mappings[$componentContext]) || !$recordModel) {
-            return $text;
-        }
-
-        $contextMappings = $mappings[$componentContext];
-
-        // Replace positional parameters like {{1}}, {{2}} or named like {{name}}
-        return preg_replace_callback('/\{\{([^}]+)\}\}/', function($matches) use ($contextMappings, $recordModel) {
-            $varName = trim($matches[1]);
-            if(isset($contextMappings[$varName])) {
-                $crmField = $contextMappings[$varName];
-                $val = $recordModel->get($crmField);
-                return !empty($val) ? $val : "[No Value]";
-            }
-            return $matches[0]; // Return original if no mapping found
-        }, $text);
-    }
-
-    public function sendWhatsappMessage(Vtiger_Request $request) {
-        // Pending further instructions on Send Service Architecture
-        $response = new Vtiger_Response();
-        $response->setResult(array('success' => true, 'message' => "Message Sent Simulation Successful. Ready for integration."));
+        $response->setResult($results);
         $response->emit();
     }
 }

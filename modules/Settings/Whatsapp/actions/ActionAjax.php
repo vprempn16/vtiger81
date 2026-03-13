@@ -40,7 +40,7 @@ class Settings_Whatsapp_ActionAjax_Action extends Settings_Vtiger_Index_Action
             $recordModel->set('id', $recordId);
         }
 
-        $fields = array('name', 'description', 'app_id', 'app_secret', 'phone_number_id', 'business_id', 'access_token', 'is_active');
+        $fields = array('name', 'description', 'app_id', 'app_secret', 'phone_number_id', 'business_id', 'access_token', 'default_country_code', 'is_active');
         $data = array();
         foreach ($fields as $field) {
             $value = $request->get($field);
