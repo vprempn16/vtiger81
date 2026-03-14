@@ -71,7 +71,7 @@
                         <div class="row form-group">
                             <label class="col-sm-3 control-label">{vtranslate('Media / Attachment', $MODULE)}</label>
                             <div class="col-sm-8">
-                                <input type="file" name="whatsapp_media" id="whatsappMedia" class="form-control" />
+                                <input type="file" name="whatsapp_media" id="whatsappMedia" class="form-control" accept=".jpg, .jpeg, .png, .webp, .pdf, .txt, .doc, .docx, .ppt, .pptx, .xls, .xlsx, .mp4, .3gp, .aac, .mpeg, .amr, .ogg, .opus" />
                                 <span class="help-block"><small>Images, Documents, Video</small></span>
                             </div>
                         </div>

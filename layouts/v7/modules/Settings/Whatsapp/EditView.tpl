@@ -68,13 +68,6 @@
                             </td>
                         </tr>
                         <tr>
-                            <td class="fieldLabel alignMiddle">{vtranslate('LBL_DEFAULT_COUNTRY_CODE', $QUALIFIED_MODULE)}<span class="redColor">*</span></td>
-                            <td class="fieldValue">
-                                <input type="text" class="inputElement" name="default_country_code" value="{$RECORD_MODEL->get('default_country_code')|default:'91'}" data-rule-required="true" />
-                                <p class="help-block"><small>{vtranslate('LBL_DEFAULT_COUNTRY_CODE_HELP', $QUALIFIED_MODULE)}</small></p>
-                            </td>
-                        </tr>
-                        <tr>
                             <td class="fieldLabel alignMiddle">{vtranslate('LBL_IS_ACTIVE', $QUALIFIED_MODULE)}</td>
                             <td class="fieldValue">
                                 <input type="checkbox" name="is_active" {if $RECORD_MODEL->get('is_active')}checked{/if} value="1" />

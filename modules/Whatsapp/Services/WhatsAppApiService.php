@@ -8,6 +8,8 @@
  * All Rights Reserved.
  *************************************************************************************/
 
+require_once 'modules/Settings/Whatsapp/models/Record.php';
+
 class WhatsAppApiService
 {
     protected $channel;
@@ -15,6 +17,68 @@ class WhatsAppApiService
     protected $phoneNumberId;
     protected $businessId;
     public $baseUrl = 'https://graph.facebook.com/v21.0';
+
+    public function findRecordByPhoneNumber($number)
+    {
+        $db = PearDatabase::getInstance();
+        $cleaned = preg_replace('/[^0-9]/', '', $number);
+        if (empty($cleaned)) return array();
+
+        // We search in Leads, Contacts, and Accounts
+        $queries = array(
+            'Leads' => "SELECT leadid as id FROM vtiger_leaddetails 
+                        INNER JOIN vtiger_crmobject ON vtiger_crmobject.crmid = vtiger_leaddetails.leadid
+                        WHERE vtiger_crmobject.deleted = 0 AND (phone LIKE ? OR mobile LIKE ?)",
+            'Contacts' => "SELECT contactid as id FROM vtiger_contactdetails 
+                           INNER JOIN vtiger_crmobject ON vtiger_crmobject.crmid = vtiger_contactdetails.contactid
+                           WHERE vtiger_crmobject.deleted = 0 AND (phone LIKE ? OR mobile LIKE ?)",
+            'Accounts' => "SELECT accountid as id FROM vtiger_account 
+                           INNER JOIN vtiger_crmobject ON vtiger_crmobject.crmid = vtiger_account.accountid
+                           WHERE vtiger_crmobject.deleted = 0 AND (phone LIKE ? OR otherphone LIKE ?)"
+        );
+
+        $results = array();
+        $searchPattern = "%$cleaned%";
+
+        foreach ($queries as $module => $sql) {
+            $res = $db->pquery($sql, array($searchPattern, $searchPattern));
+            while ($row = $db->fetch_array($res)) {
+                $results[] = array(
+                    'related_module' => $module,
+                    'related_id' => $row['id'],
+                    'crm_field' => ($module === 'Leads' || $module === 'Contacts') ? 'mobile' : 'phone'
+                );
+            }
+        }
+        return $results;
+    }
+
+    public static function getChannelByPhoneNumberId($phoneNumberId)
+    {
+        $db = PearDatabase::getInstance();
+        $result = $db->pquery("SELECT id FROM vtiger_whatsapp_channels WHERE phone_number_id = ? AND is_active = 1", array($phoneNumberId));
+        if ($db->num_rows($result)) {
+            $id = $db->query_result($result, 0, 'id');
+            return Settings_Whatsapp_Record_Model::getInstanceById($id, 'Settings:Whatsapp');
+        }
+        return false;
+    }
+
+    // Meta-supported MIME types for WhatsApp API
+    public static $ALLOWED_MIME_TYPES = array(
+        // Audio
+        'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/amr', 'audio/ogg', 'audio/opus',
+        // Documents
+        'application/vnd.ms-powerpoint', 'application/msword', 
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/pdf', 'text/plain', 'application/vnd.ms-excel',
+        // Images
+        'image/jpeg', 'image/png', 'image/webp',
+        // Video
+        'video/mp4', 'video/3gpp'
+    );
 
     public function __construct($channel)
     {
@@ -77,67 +141,11 @@ class WhatsAppApiService
 
     public function formatPhoneNumber($phoneNumber, $recordModel = null)
     {
-        $phoneNumber = trim($phoneNumber);
-        if (empty($phoneNumber)) return '';
-
-        // 1. If starts with +, it's definitely full international. Strip symbols and return.
-        if (strpos($phoneNumber, '+') === 0) {
-            return preg_replace('/[^0-9]/', '', $phoneNumber);
-        }
-
-        // 2. Clean all symbols (spaces, dashes, parens)
+        // 1. Clean all symbols (spaces, dashes, parens)
         $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
-
-        // 3. If it's 10 digits, we check for a country code to prepend
-        if (strlen($cleaned) === 10) {
-            $countryCode = '';
-            
-            // Try record-level detection if model is available
-            if ($recordModel) {
-                $countryFields = array('mailingcountry', 'othercountry', 'country', 'bill_country', 'ship_country');
-                foreach ($countryFields as $field) {
-                    $countryName = $recordModel->get($field);
-                    if ($countryName) {
-                        $countryCode = $this->getCountryCode($countryName);
-                        if ($countryCode) break;
-                    }
-                }
-            }
-
-            // Fallback to Channel Default Prefix
-            if (empty($countryCode)) {
-                $countryCode = $this->channel ? $this->channel->get('default_country_code') : '91';
-            }
-
-            return $countryCode . $cleaned;
-        }
-
-        // 4. If 11+ digits, assume it already contains a country code
+        
+        // Return cleaned number (User has new plan for normalization)
         return $cleaned;
-    }
-
-    private function getCountryCode($countryName)
-    {
-        $countryName = strtolower(trim($countryName));
-        $mapping = array(
-            'india' => '91',
-            'usa' => '1',
-            'united states' => '1',
-            'united states of america' => '1',
-            'uk' => '44',
-            'united kingdom' => '44',
-            'gb' => '44',
-            'australia' => '61',
-            'canada' => '1',
-            'germany' => '49',
-            'france' => '33',
-            'uae' => '971',
-            'united arab emirates' => '971',
-            'singapore' => '65',
-            'malaysia' => '60',
-            'sri lanka' => '94',
-        );
-        return $mapping[$countryName] ?? '';
     }
 
     /**
@@ -244,14 +252,19 @@ class WhatsAppApiService
 
     // --- Methods moved from MassActionAjax ---
 
-    public function getTemplatesByChannel($channelId, $sourceModule)
+    public function getTemplatesByChannel($channelId, $sourceModule = null)
     {
         $db = PearDatabase::getInstance();
+        $params = array($channelId);
         $query = "SELECT id, template_name, language FROM vtiger_whatsapp_templates 
-                  WHERE whatsapp_channel_id = ? AND module = ? AND status = 'APPROVED'";
-
-        $result = $db->pquery($query, array($channelId, $sourceModule));
+                  WHERE whatsapp_channel_id = ? AND status = 'APPROVED'";
+        
+        if (!empty($sourceModule)) {
+            $query .= " AND module = ?";
+            $params[] = $sourceModule;
+        }
         $templates = array();
+        $result = $db->pquery($query, $params);
 
         while ($row = $db->fetch_array($result)) {
             $templates[] = array(
@@ -537,7 +550,8 @@ class WhatsAppApiService
     public function sendMediaMessage($to, $type, $mediaRecordId, $mediaId, $caption, $logData)
     {
         $logData['type'] = 'media';
-        $logData['media_id'] = $mediaRecordId;
+        // Use local record ID if available, otherwise fallback to Meta Media ID for logging
+        $logData['media_id'] = !empty($mediaRecordId) ? $mediaRecordId : $mediaId;
         $logData['message'] = $caption;
         $log = $this->createLog($logData);
 
@@ -569,17 +583,44 @@ class WhatsAppApiService
 
     public function uploadMediaToWhatsApp($filePath, $mimeType, $fileName)
     {
+        // 1. Move file to permanent storage
+        $storageDir = 'storage/whatsapp/';
+        if (!is_dir($storageDir)) {
+            if (!mkdir($storageDir, 0777, true)) {
+                return array('success' => false, 'message' => 'Failed to create WhatsApp storage directory');
+            }
+        }
+        
+        $uniqueName = time() . '_' . $fileName;
+        $localPath = $storageDir . $uniqueName;
+        
+        if (!move_uploaded_file($filePath, $localPath)) {
+            // If it's not an uploaded file (e.g. from local server path), try copy
+            if (!copy($filePath, $localPath)) {
+                return array('success' => false, 'message' => 'Failed to save file to local storage');
+            }
+        }
+
         $url = "{$this->baseUrl}/{$this->phoneNumberId}/media";
         $payload = array(
             'messaging_product' => 'whatsapp',
             'type' => $mimeType,
-            'file' => new CURLFile($filePath, $mimeType, $fileName)
+            'file' => new CURLFile($localPath, $mimeType, $fileName)
         );
 
         $response = self::request($url, $this->accessToken, $payload, 'POST', array(), true);
 
         if ($response['success'] && !empty($response['response']['id'])) {
-            return array('success' => true, 'media_id' => $response['response']['id']);
+            $mediaId = $response['response']['id'];
+            
+            // Log to vtiger_whatsapp_media for tracking
+            $db = PearDatabase::getInstance();
+            $mediaTableId = $db->getUniqueID('vtiger_whatsapp_media');
+            $db->pquery("INSERT INTO vtiger_whatsapp_media (id, whatsapp_channel_id, media_id, mime_type, file_name, local_path, created_by) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?)", 
+                         array($mediaTableId, $this->channel ? $this->channel->getId() : null, $mediaId, $mimeType, $fileName, $localPath, Users_Record_Model::getCurrentUserModel()->getId()));
+
+            return array('success' => true, 'media_id' => $mediaId);
         }
         return array('success' => false, 'message' => $response['message'] ?? 'Media upload failed');
     }
@@ -590,6 +631,16 @@ class WhatsAppApiService
         $mimeType = finfo_file($finfo, $filePath);
         finfo_close($finfo);
         return $mimeType;
+    }
+
+    public static function isMimeTypeSupported($mimeType)
+    {
+        return in_array(strtolower($mimeType), self::$ALLOWED_MIME_TYPES);
+    }
+
+    public static function getSupportedExtensions()
+    {
+        return '.jpg, .jpeg, .png, .webp, .pdf, .txt, .doc, .docx, .ppt, .pptx, .xls, .xlsx, .mp4, .3gp, .aac, .mpeg, .amr, .ogg, .opus';
     }
 
     public function validateTemplateMappings($templateId, $sourceModule)
@@ -639,6 +690,34 @@ class WhatsAppApiService
 
     public function buildTemplateComponents($templateId, $recordId, $sourceModule)
     {
+        $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
+        
+        $db = PearDatabase::getInstance();
+        $query = "SELECT component_type, template_variable, crm_field FROM vtiger_whatsapp_template_map WHERE template_id = ?";
+        $result = $db->pquery($query, array($templateId));
+        $valueMap = array();
+        while ($row = $db->fetch_array($result)) {
+            $val = $recordModel->get($row['crm_field']);
+            $valueMap[$row['component_type']][$row['template_variable']] = (string) $val;
+        }
+
+        return $this->buildTemplateComponentsWithMapping($templateId, $recordModel, $valueMap);
+    }
+
+    public function buildTemplateComponentsForWorkflow($templateId, $recordModel, $mapping)
+    {
+        $valueMap = array();
+        foreach ($mapping as $componentType => $vars) {
+            foreach ($vars as $varName => $crmField) {
+                $val = $recordModel->get($crmField);
+                $valueMap[$componentType][$varName] = (string) $val;
+            }
+        }
+        return $this->buildTemplateComponentsWithMapping($templateId, $recordModel, $valueMap);
+    }
+
+    private function buildTemplateComponentsWithMapping($templateId, $recordModel, $valueMap)
+    {
         $db = PearDatabase::getInstance();
         $query = "SELECT template_name, language, components, format FROM vtiger_whatsapp_templates WHERE id = ?";
         $result = $db->pquery($query, array($templateId));
@@ -650,16 +729,6 @@ class WhatsAppApiService
         $language = $row['language'];
         $format = $row['format'];
         $components = json_decode(htmlspecialchars_decode($row['components'], ENT_QUOTES), true);
-
-        $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
-
-        $query = "SELECT component_type, template_variable, crm_field FROM vtiger_whatsapp_template_map WHERE template_id = ?";
-        $result = $db->pquery($query, array($templateId));
-        $valueMap = array();
-        while ($row = $db->fetch_array($result)) {
-            $val = $recordModel->get($row['crm_field']);
-            $valueMap[$row['component_type']][$row['template_variable']] = (string) $val;
-        }
 
         $builtComponents = array();
         foreach ($components as $component) {
@@ -699,8 +768,10 @@ class WhatsAppApiService
         // Regex to find all {{variable}} patterns
         if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $text, $matches)) {
             foreach ($matches[1] as $index => $varName) {
-                $fullMatch = $matches[0][$index];
-                $val = isset($values[$fullMatch]) ? $values[$fullMatch] : '';
+                $fullMatch = $matches[0][$index]; // {{name}}
+                
+                // Try with braces first, then without
+                $val = isset($values[$fullMatch]) ? $values[$fullMatch] : (isset($values[$varName]) ? $values[$varName] : '');
 
                 $param = array('type' => 'text', 'text' => (string) $val);
 

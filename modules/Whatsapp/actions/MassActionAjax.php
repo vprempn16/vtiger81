@@ -24,6 +24,10 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
             $this->getTemplatePreview($request);
         } else if ($mode == 'sendWhatsappMessage') {
             $this->sendWhatsappMessage($request);
+        } else if ($mode == 'getMappingUIForWorkflow') {
+            $this->getMappingUIForWorkflow($request);
+        } else if ($mode == 'validateRecipient') {
+            $this->validateRecipient($request);
         }
     }
 
@@ -86,6 +90,16 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
         // Handle Media Upload if present
         if (!empty($_FILES['whatsapp_media']['name'])) {
             $mediaFile = $_FILES['whatsapp_media'];
+            
+            // Validate MIME Type
+            if (!WhatsAppApiService::isMimeTypeSupported($mediaFile['type'])) {
+                $response = new Vtiger_Response();
+                $supported = WhatsAppApiService::getSupportedExtensions();
+                $response->setError(1, "Unsupported file type: {$mediaFile['type']}. Supported types: {$supported}");
+                $response->emit();
+                return;
+            }
+
             $uploadResult = $apiService->uploadMediaToWhatsApp($mediaFile['tmp_name'], $mediaFile['type'], $mediaFile['name']);
             if ($uploadResult['success']) {
                 $type = 'media';
@@ -169,6 +183,193 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
 
         $response = new Vtiger_Response();
         $response->setResult($results);
+        $response->emit();
+    }
+
+    public function getMappingUIForWorkflow(Vtiger_Request $request) {
+        $templateId = $request->get('template_id');
+        $sourceModule = $request->get('source_module');
+
+        $apiService = new WhatsAppApiService(null);
+        $db = PearDatabase::getInstance();
+
+        // 1. Get raw template components
+        $query = "SELECT components FROM vtiger_whatsapp_templates WHERE id = ?";
+        $result = $db->pquery($query, array($templateId));
+        $componentsStr = html_entity_decode($db->query_result($result, 0, 'components'), ENT_QUOTES, 'UTF-8');
+        $components = json_decode($componentsStr, true);
+
+        // 2. Get Module Fields
+        $moduleModel = Vtiger_Module_Model::getInstance($sourceModule);
+        $fields = $moduleModel->getFields();
+        $moduleFields = array();
+        foreach ($fields as $fieldName => $fieldModel) {
+            $moduleFields[] = array('name' => $fieldName, 'label' => vtranslate($fieldModel->get('label'), $sourceModule));
+        }
+
+        // 3. Prepare placeholders with examples
+        $placeholders = array('HEADER' => array(), 'BODY' => array(), 'BUTTONS' => array());
+        foreach ($components as $comp) {
+            $type = strtoupper($comp['type']);
+            if ($type === 'HEADER' && ($comp['format'] ?? '') === 'TEXT' && isset($comp['text'])) {
+                preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $comp['text'], $matches);
+                if (!empty($matches[1])) {
+                    $uniqueVars = array_unique($matches[1]);
+                    $exampleValues = array();
+                    $namedExamples = array();
+
+                    if (isset($comp['example']['header_text'][0])) {
+                        $exampleValues = $comp['example']['header_text'];
+                    } elseif (isset($comp['example']['header_text_named_params'])) {
+                        foreach ($comp['example']['header_text_named_params'] as $np) {
+                            $namedExamples[$np['param_name']] = $np['example'];
+                        }
+                    }
+
+                    $varIndex = 0;
+                    foreach ($uniqueVars as $var) {
+                        $exVal = '';
+                        if (isset($namedExamples[$var])) {
+                            $exVal = $namedExamples[$var];
+                        } elseif (isset($exampleValues[$varIndex])) {
+                            $exVal = $exampleValues[$varIndex];
+                        }
+                        
+                        if (empty($exVal)) $exVal = $var;
+                        if (is_array($exVal)) $exVal = reset($exVal);
+                        
+                        $placeholders['HEADER'][] = array('var' => $var, 'example' => $exVal);
+                        $varIndex++;
+                    }
+                }
+            } else if ($type === 'BODY' && isset($comp['text'])) {
+                preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $comp['text'], $matches);
+                if (!empty($matches[1])) {
+                    $uniqueVars = array_unique($matches[1]);
+                    $exampleValues = array();
+                    $namedExamples = array();
+
+                    if (isset($comp['example']['body_text'][0])) {
+                        $exampleValues = $comp['example']['body_text'][0];
+                    } elseif (isset($comp['example']['body_text_named_params'])) {
+                        foreach ($comp['example']['body_text_named_params'] as $np) {
+                            $namedExamples[$np['param_name']] = $np['example'];
+                        }
+                    }
+
+                    $varIndex = 0;
+                    foreach ($uniqueVars as $var) {
+                        $exVal = '';
+                        if (isset($namedExamples[$var])) {
+                            $exVal = $namedExamples[$var];
+                        } elseif (isset($exampleValues[$varIndex])) {
+                            $exVal = $exampleValues[$varIndex];
+                        }
+                        
+                        if (empty($exVal)) $exVal = $var;
+                        if (is_array($exVal)) $exVal = reset($exVal);
+
+                        $placeholders['BODY'][] = array('var' => $var, 'example' => $exVal);
+                        $varIndex++;
+                    }
+                }
+            } else if ($type === 'BUTTONS') {
+                foreach ($comp['buttons'] as $index => $btn) {
+                    if (($btn['type'] ?? '') === 'URL' && !empty($btn['url'])) {
+                        preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $btn['url'], $matches);
+                        if (!empty($matches[1])) {
+                            $uniqueVars = array_unique($matches[1]);
+                            $examples = $btn['example'] ?? array();
+                            if (isset($examples[0]) && is_array($examples[0])) $examples = $examples[0];
+                            
+                            $btnVars = array();
+                            $varIndex = 0;
+                            foreach ($uniqueVars as $var) {
+                                $exVal = $examples[$varIndex] ?? $var;
+                                if (is_array($exVal)) $exVal = reset($exVal);
+                                $btnVars[] = array('var' => $var, 'example' => $exVal);
+                                $varIndex++;
+                            }
+                            
+                            $btnNum = $index + 1;
+                            $placeholders['BUTTONS'][$btnNum] = array(
+                                'label' => $btn['text'] ?? "Button {$btnNum}",
+                                'vars' => $btnVars
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Get Review Preview
+        $preview = $apiService->getTemplatePreview($templateId, null, $sourceModule);
+
+        $viewer = Vtiger_Viewer::getInstance();
+        $viewer->assign('PLACEHOLDERS', $placeholders);
+        $viewer->assign('MODULE_FIELDS', $moduleFields);
+        $viewer->assign('PREVIEW_HTML', $preview['preview_html']);
+        $viewer->assign('TEMPLATE_ID', $templateId);
+        
+        $html = $viewer->view('taskforms/VTWhatsappMapping.tpl', 'Whatsapp', true);
+        
+        $response = new Vtiger_Response();
+        $response->setResult($html);
+        $response->emit();
+    }
+
+    public function validateRecipient(Vtiger_Request $request) {
+        global $adb;
+        $logFile = 'storage/wa_validation.log';
+        $recordId = $request->get('record');
+        $sourceModule = $request->get('source_module');
+        $phoneField = $request->get('phone_field');
+
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Validating with global adb: Record=$recordId, Module=$sourceModule, Field=$phoneField\n", FILE_APPEND);
+
+        $response = new Vtiger_Response();
+        try {
+            if (empty($recordId) || empty($sourceModule) || empty($phoneField)) {
+                throw new Exception("Missing parameters: Record=$recordId, Module=$sourceModule, Field=$phoneField");
+            }
+
+            $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
+            $phoneNumber = (string)$recordModel->get($phoneField);
+            
+            file_put_contents($logFile, "  - Phone Number: " . $phoneNumber . "\n", FILE_APPEND);
+
+            $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
+            $hasCountryCode = (strlen($cleaned) > 10);
+            
+            // Check if number was ever successfully messaged
+            $isExisting = false;
+            $query = "SELECT count(*) as count FROM vtiger_whatsapp 
+                      INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid = vtiger_whatsapp.whatsappid
+                      WHERE vtiger_crmentity.deleted = 0 AND whatsapp_no = ? 
+                      AND whatsapp_status IN ('sent', 'delivered', 'read')";
+            
+            $result = $adb->pquery($query, array($cleaned));
+            
+            if ($result && $adb->num_rows($result) > 0) {
+                $count = $adb->query_result($result, 0, 'count');
+                $isExisting = ($count > 0);
+                file_put_contents($logFile, "  - Query Result: Found $count records.\n", FILE_APPEND);
+            } else {
+                file_put_contents($logFile, "  - Query failed or returned no rows.\n", FILE_APPEND);
+            }
+            
+            $resultArr = array(
+                'has_country_code' => $hasCountryCode,
+                'is_existing' => $isExisting,
+                'phone_number' => $phoneNumber
+            );
+            file_put_contents($logFile, "  - Final Result: " . json_encode($resultArr) . "\n", FILE_APPEND);
+            
+            $response->setResult($resultArr);
+        } catch (Exception $e) {
+            file_put_contents($logFile, "  - ERROR: " . $e->getMessage() . "\n", FILE_APPEND);
+            $response->setError(1, $e->getMessage());
+        }
         $response->emit();
     }
 }

@@ -16,13 +16,9 @@ We established the core back-end tables to store WhatsApp configurations and imp
 ## 2. WhatsApp Settings UI: Channels
 * **Location**: Vtiger **Settings > Other Settings > WhatsApp Channels**
 * **Features**: 
-  * Complete CRUD (Create, Read, Update, Delete) UI implemented for Channels.
-  * Utilizes Vtiger's `Settings_Whatsapp_Record_Model` and customized List/Edit views.
-  * Securely stores the `Permanent Access Token` and other Meta API parameters.
-  * Clean styling adhering to Vtiger V7 standards.
-  * Complete CRUD UI implemented for Channels.
+  * Complete CRUD UI implemented for Channels adhering to Vtiger V7 standards.
   * **Default Country Code Setting**: Added a user-editable field to define the local prefix (e.g., `91` for India, `1` for USA) per channel. This ensures 10-digit numbers stored in the CRM are correctly formatted before sending.
-  * Securely stores credentials and adheres to Vtiger V7 standards.
+  * Securely stores credentials and access tokens.
 
 ## 3. WhatsApp Settings UI: Templates List
 * **Features**:
@@ -61,8 +57,25 @@ Implemented in `WhatsAppApiService::formatPhoneNumber`, this multi-level engine 
 
 ---
 
+## 8. WhatsApp Workflow Automation
+* **Integration**: Added "Send WhatsApp Message" as a native Vtiger Workflow Task.
+* **Features**:
+  * **Dynamic Mapping**: Supports full CRM field mapping for Header, Body, and Button variables.
+  * **Robust Multi-Action Support**: Refactored JavaScript to allow multiple WhatsApp actions within a single workflow without interference.
+  * **Intelligent Pre-fill**: Automatically restores all selections (Channel, Template, and variable mappings) when editing a workflow task.
+
+## 9. Real-time Webhook Integration
+* **Endpoint**: `whatsapp_webhook.php` (Verify Token: `atompen_wa_verify_token`).
+* **Processing**: Dedicated `WebhookHandler` for high-performance payload parsing.
+* **Features**:
+  * **Status Tracking**: Real-time updates for delivery status (`delivered`, `read`, `failed`) directly on the CRM record.
+  * **Incoming Messages**: Captures incoming text, media (images, docs, video), and locations.
+  * **Thread Continuity**: Uses Meta's context ID to intelligently link replies to the same Contact/Lead that initiated the conversation.
+  * **Automatic Record Matching**: Searches Leads, Contacts, and Accounts by phone number to associate unlinked incoming messages.
+
+---
+
 ## Next Steps Remaining
 1.  **Messaging Components UI**: Build widget views / chat interface within Contact/Lead summary views.
-2.  **Webhook Integration**: Expose a secure endpoint to ingest real-time replies/status receipts.
-3.  **Interactive Messages**: Extend logic to handle List and Reply Button interactive payloads.
-4.  **Final Installation Package**: Compile changes into a `manifest.xml` package.
+2.  **Interactive Messages**: Extend logic to handle List and Reply Button interactive payloads.
+3.  **Final Installation Package**: Compile changes into a `manifest.xml` package.

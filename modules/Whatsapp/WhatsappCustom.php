@@ -8,6 +8,9 @@ class WhatsappCustom
         $this->createTables();
         $this->settingsLink();
         $this->addHeaderScript();
+        $this->registerWorkflowTask();
+        $this->updateEntityNames();
+        $this->updateWsEntity();
     }
 
     public function postDisable()
@@ -26,6 +29,9 @@ class WhatsappCustom
         $this->createFields();
         $this->createTables();
         $this->settingsLink();
+        $this->registerWorkflowTask();
+        $this->updateEntityNames();
+        $this->updateWsEntity();
     }
 
     public function createFields()
@@ -91,7 +97,8 @@ class WhatsappCustom
                     }
                     echo "Field $fieldName created successfully.<br>";
                 }
-            } catch (Exception $e) {
+            }
+            catch (Exception $e) {
                 echo "Error creating field $fieldName: " . $e->getMessage() . "<br>";
             }
         }
@@ -221,8 +228,54 @@ class WhatsappCustom
     {
         require_once('vtlib/Vtiger/Link.php');
         $module = Vtiger_Module::getInstance('Whatsapp');
-        if($module) {
+        if ($module) {
             Vtiger_Link::addLink($module->id, 'HEADERSCRIPT', 'Whatsapp', 'layouts/v7/modules/Whatsapp/resources/Whatsapp.js');
+        }
+    }
+
+    public function registerWorkflowTask()
+    {
+        require_once 'modules/com_vtiger_workflow/VTTaskManager.inc';
+        $taskType = "VTSendWhatsappTask";
+        $db = PearDatabase::getInstance();
+        $result = $db->pquery("SELECT * FROM com_vtiger_workflow_tasktypes WHERE tasktypename=?", array($taskType));
+        if ($db->num_rows($result) == 0) {
+            $taskTypeData = array(
+                "name" => $taskType,
+                "label" => "Send Whatsapp Message",
+                "classname" => $taskType,
+                "classpath" => "modules/Whatsapp/workflow/$taskType.php",
+                "templatepath" => "Whatsapp/taskforms/$taskType.tpl",
+                "modules" => array("include" => array(), "exclude" => array()),
+                "sourcemodule" => 'Whatsapp'
+            );
+            VTTaskType::registerTaskType($taskTypeData);
+        }
+    }
+    public function updateEntityNames()
+    {
+        global $adb;
+        $moduleName = 'Whatsapp';
+        $result = $adb->pquery("SELECT tabid FROM vtiger_tab WHERE name = ?", array($moduleName));
+        if ($adb->num_rows($result)) {
+            $tabid = $adb->query_result($result, 0, 'tabid');
+            $checkResult = $adb->pquery("SELECT * FROM vtiger_entitynames WHERE modulename = ?", array($moduleName));
+            if ($adb->num_rows($checkResult) == 0) {
+                $adb->pquery("INSERT INTO vtiger_entitynames (tabid, modulename, tablename, fieldname, entityidfield) VALUES (?,?,?,?,?)",
+                    array($tabid, $moduleName, 'vtiger_whatsapp', 'message', 'whatsappid'));
+            }
+        }
+    }
+
+    public function updateWsEntity()
+    {
+        global $adb;
+        $moduleName = 'Whatsapp';
+        $checkResult = $adb->pquery("SELECT * FROM vtiger_ws_entity WHERE name = ?", array($moduleName));
+        if ($adb->num_rows($checkResult) == 0) {
+            $id = $adb->getUniqueID('vtiger_ws_entity');
+            $adb->pquery("INSERT INTO vtiger_ws_entity (id, name, handler_path, handler_class, ismodule) VALUES (?,?,?,?,?)",
+                array($id, $moduleName, 'include/Webservices/VtigerModuleOperation.php', 'VtigerModuleOperation', 1));
         }
     }
 }

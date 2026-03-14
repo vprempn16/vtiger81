@@ -135,7 +135,7 @@
 				$taskClassPath = $taskTypeInstance->get('classpath');
 				require_once($taskClassPath);
 			} else {
-                if(!empty($taskType)) {
+				if(!empty($taskType)) {
 					require_once("tasks/".$taskType.".inc");
                 }
 			}

@@ -56,7 +56,7 @@ class Whatsapp_Js {
     showSendWhatsappModal() {
         var moduleName = app.getModuleName();
         var recordId = app.getRecordId();
-        
+
         var postData = {
             'module': 'Whatsapp',
             'view': 'MassActionAjax',
@@ -66,12 +66,12 @@ class Whatsapp_Js {
         };
 
         var progressIndicatorElement = jQuery.progressIndicator();
-        app.request.post({'data': postData}).then(
-            function(err, data) {
-                progressIndicatorElement.progressIndicator({'mode': 'hide'});
-                if(data) {
+        app.request.post({ 'data': postData }).then(
+            function (err, data) {
+                progressIndicatorElement.progressIndicator({ 'mode': 'hide' });
+                if (data) {
                     app.helper.showModal(data, {
-                        'cb': function(modalContainer) {
+                        'cb': function (modalContainer) {
                             var instance = new Whatsapp_Js();
                             instance.registerComposeModalEvents(modalContainer);
                         }
@@ -86,7 +86,7 @@ class Whatsapp_Js {
      */
     registerComposeModalEvents(modalContainer) {
         var thisInstance = this;
-        
+
         // Initialize Select2
         vtUtils.showSelect2ElementView(modalContainer.find('select.select2'));
 
@@ -96,13 +96,56 @@ class Whatsapp_Js {
         var templatePreviewContainer = modalContainer.find('#whatsappTemplatePreviewContainer');
         var templatePreviewBox = modalContainer.find('#whatsappTemplatePreviewBox');
         var sendBtnLabel = modalContainer.find('#sendBtnLabel');
+        var sendBtnSubmit = modalContainer.find('#sendWhatsappBtnSubmit');
+
+        // Handle Recipient Change (Validation)
+        var recipientSelect = modalContainer.find('#whatsappToNumber');
+        recipientSelect.on('change', function (e) {
+            var phoneField = jQuery(e.currentTarget).val();
+            console.log(phoneField);
+            var recordId = modalContainer.find('[name="record"]').val();
+            var sourceModule = modalContainer.find('[name="source_module"]').val();
+
+            if (!phoneField) {
+                sendBtnSubmit.prop('disabled', true);
+                return;
+            }
+
+            var actionParams = {
+                'module': 'Whatsapp',
+                'action': 'MassActionAjax',
+                'mode': 'validateRecipient',
+                'record': recordId,
+                'source_module': sourceModule,
+                'phone_field': phoneField
+            };
+
+            app.request.post({ 'data': actionParams }).then(function (err, response) {
+                if (!err && response) {
+                    if (response.has_country_code) {
+                        sendBtnSubmit.prop('disabled', false);
+                        if (!response.is_existing) {
+                            // Optional warning for new recipients
+                            app.helper.showSuccessNotification({
+                                message: app.vtranslate('Number validated with country code. First time messaging this recipient.')
+                            });
+                        }
+                    } else {
+                        app.helper.showErrorNotification({
+                            message: app.vtranslate('The selected number does not have a country code. Please update the record or use a different field.')
+                        });
+                        sendBtnSubmit.prop('disabled', true);
+                    }
+                }
+            });
+        });
 
         // Handle Channel Change
-        channelSelect.on('change', function(e) {
+        channelSelect.on('change', function (e) {
             var channelId = jQuery(e.currentTarget).val();
             var sourceModule = modalContainer.find('[name="source_module"]').val();
-            
-            if(!channelId) {
+
+            if (!channelId) {
                 templateSelect.html('<option value="none">' + app.vtranslate('None - Type Message') + '</option>').trigger('change');
                 return;
             }
@@ -121,11 +164,11 @@ class Whatsapp_Js {
                 'source_module': sourceModule
             };
 
-            app.request.post({'data': actionParams}).then(function(err, response) {
-                progressInstance.progressIndicator({'mode': 'hide'});
-                if(!err && response) {
+            app.request.post({ 'data': actionParams }).then(function (err, response) {
+                progressInstance.progressIndicator({ 'mode': 'hide' });
+                if (!err && response) {
                     var optionsHtml = '<option value="none">' + app.vtranslate('None - Type Message') + '</option>';
-                    jQuery.each(response, function(index, template) {
+                    jQuery.each(response, function (index, template) {
                         optionsHtml += '<option value="' + template.id + '">' + template.name + ' (' + template.language + ')</option>';
                     });
                     templateSelect.html(optionsHtml).trigger('change');
@@ -134,12 +177,12 @@ class Whatsapp_Js {
         });
 
         // Handle Template Change
-        templateSelect.on('change', function(e) {
+        templateSelect.on('change', function (e) {
             var templateId = jQuery(e.currentTarget).val();
             var recordId = modalContainer.find('[name="record"]').val();
             var sourceModule = modalContainer.find('[name="source_module"]').val();
 
-            if(!templateId || templateId === 'none') {
+            if (!templateId || templateId === 'none') {
                 // Show Free Form
                 templatePreviewContainer.hide();
                 freeFormContainer.show();
@@ -162,11 +205,11 @@ class Whatsapp_Js {
                     'source_module': sourceModule
                 };
 
-                app.request.post({'data': actionParams}).then(function(err, response) {
-                    if(!err && response) {
+                app.request.post({ 'data': actionParams }).then(function (err, response) {
+                    if (!err && response) {
                         // Response should contain the parsed text
                         templatePreviewBox.html(response.preview_html);
-                        if(response.isValid === false) {
+                        if (response.isValid === false) {
                             modalContainer.find('#sendWhatsappBtnSubmit').prop('disabled', true);
                         } else {
                             modalContainer.find('#sendWhatsappBtnSubmit').prop('disabled', false);
@@ -179,32 +222,56 @@ class Whatsapp_Js {
             }
         });
 
+        // Handle File Selection Validation
+        modalContainer.find('#whatsappMedia').on('change', function (e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            var allowedTypes = [
+                'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/amr', 'audio/ogg', 'audio/opus',
+                'application/vnd.ms-powerpoint', 'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/pdf', 'text/plain', 'application/vnd.ms-excel',
+                'image/jpeg', 'image/png', 'image/webp',
+                'video/mp4', 'video/3gpp'
+            ];
+
+            if (allowedTypes.indexOf(file.type) === -1) {
+                app.helper.showErrorNotification({
+                    message: app.vtranslate('Unsupported file type: ') + file.type + '. ' + app.vtranslate('Please use JPG, PNG, PDF, etc.')
+                });
+                jQuery(e.target).val(''); // Clear the input
+            }
+        });
+
         // Handle Form Submission
         var form = modalContainer.find('#massWhatsappForm');
-        form.on('submit', function(e) {
+        form.on('submit', function (e) {
             e.preventDefault();
-            
+
             // Basic validation
             var channelId = form.find('#whatsappChannel').val();
             var recipientField = form.find('#whatsappToNumber').val();
             var templateId = form.find('#whatsappTemplate').val();
-            
-            if(!recipientField) {
-                app.helper.showErrorNotification({message: app.vtranslate('Please select a To Number')});
+
+            if (!recipientField) {
+                app.helper.showErrorNotification({ message: app.vtranslate('Please select a To Number') });
                 return false;
             }
-            if(!channelId) {
-                app.helper.showErrorNotification({message: app.vtranslate('Please select a Channel')});
+            if (!channelId) {
+                app.helper.showErrorNotification({ message: app.vtranslate('Please select a Channel') });
                 return false;
             }
 
             var type = (templateId === 'none' || !templateId) ? 'message' : 'template';
             var details = {};
-            
-            if(type === 'message') {
+
+            if (type === 'message') {
                 details.text = form.find('#whatsappMessageText').val();
-                if(!details.text) {
-                    app.helper.showErrorNotification({message: app.vtranslate('Message text is required')});
+                if (!details.text) {
+                    app.helper.showErrorNotification({ message: app.vtranslate('Message text is required') });
                     return false;
                 }
             } else {
@@ -220,15 +287,15 @@ class Whatsapp_Js {
             formData.append('details', JSON.stringify(details));
             formData.append('recipients', JSON.stringify([recipientField]));
             formData.append('source_module', form.find('[name="source_module"]').val());
-            
+
             var recordId = form.find('[name="record"]').val();
-            if(recordId) formData.append('record', recordId);
-            
+            if (recordId) formData.append('record', recordId);
+
             var selectedIds = form.find('[name="selected_ids"]').val();
-            if(selectedIds) formData.append('selected_ids', selectedIds);
+            if (selectedIds) formData.append('selected_ids', selectedIds);
 
             var fileInput = form.find('#whatsappMedia');
-            if(fileInput.length > 0 && fileInput[0].files.length > 0) {
+            if (fileInput.length > 0 && fileInput[0].files.length > 0) {
                 formData.append('whatsapp_media', fileInput[0].files[0]);
             }
 
@@ -244,13 +311,13 @@ class Whatsapp_Js {
                 'contentType': false
             };
 
-            app.request.post(params).then(function(err, response) {
-                progressIndicatorElement.progressIndicator({'mode': 'hide'});
-                if(!err && response) {
+            app.request.post(params).then(function (err, response) {
+                progressIndicatorElement.progressIndicator({ 'mode': 'hide' });
+                if (!err && response) {
                     app.helper.hideModal();
-                    app.helper.showSuccessNotification({message: app.vtranslate('Message(s) processed. Check logs for details.')});
+                    app.helper.showSuccessNotification({ message: app.vtranslate('Message(s) processed. Check logs for details.') });
                 } else {
-                    app.helper.showErrorNotification({message: err || app.vtranslate('Error sending message')});
+                    app.helper.showErrorNotification({ message: err || app.vtranslate('Error sending message') });
                 }
             });
         });
