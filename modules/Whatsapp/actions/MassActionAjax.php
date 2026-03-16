@@ -118,11 +118,18 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
         }
 
         $results = array();
+        file_put_contents('storage/wa_validation.log', "sendWhatsappMessage Recipients Raw: " . print_r($request->get('recipients'), true) . "\n", FILE_APPEND);
+        file_put_contents('storage/wa_validation.log', "sendWhatsappMessage Recipients Decoded: " . print_r($recipients, true) . "\n", FILE_APPEND);
+
         foreach ($selectedIds as $recordId) {
             if (empty($recordId)) continue;
             try {
                 $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
                 foreach ($recipients as $phoneField) {
+                    file_put_contents('storage/wa_validation.log', "  - Current phoneField Type: " . gettype($phoneField) . " | Value: " . print_r($phoneField, true) . "\n", FILE_APPEND);
+                    if (is_array($phoneField)) {
+                        $phoneField = reset($phoneField); // Flaten fallback for safety
+                    }
                     $to = $recordModel->get($phoneField);
                     if (empty($to)) {
                         $results[] = array('record' => $recordId, 'field' => $phoneField, 'success' => false, 'error' => 'Phone number empty');
@@ -325,45 +332,70 @@ class Whatsapp_MassActionAjax_Action extends Vtiger_Action_Controller {
         $sourceModule = $request->get('source_module');
         $phoneField = $request->get('phone_field');
 
-        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Validating with global adb: Record=$recordId, Module=$sourceModule, Field=$phoneField\n", FILE_APPEND);
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - Validating starting: Record=$recordId, Module=$sourceModule\n", FILE_APPEND);
 
         $response = new Vtiger_Response();
         try {
             if (empty($recordId) || empty($sourceModule) || empty($phoneField)) {
-                throw new Exception("Missing parameters: Record=$recordId, Module=$sourceModule, Field=$phoneField");
+                throw new Exception("Missing parameters");
             }
 
             $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
-            $phoneNumber = (string)$recordModel->get($phoneField);
             
-            file_put_contents($logFile, "  - Phone Number: " . $phoneNumber . "\n", FILE_APPEND);
-
-            $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
-            $hasCountryCode = (strlen($cleaned) > 10);
-            
-            // Check if number was ever successfully messaged
-            $isExisting = false;
-            $query = "SELECT count(*) as count FROM vtiger_whatsapp 
-                      INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid = vtiger_whatsapp.whatsappid
-                      WHERE vtiger_crmentity.deleted = 0 AND whatsapp_no = ? 
-                      AND whatsapp_status IN ('sent', 'delivered', 'read')";
-            
-            $result = $adb->pquery($query, array($cleaned));
-            
-            if ($result && $adb->num_rows($result) > 0) {
-                $count = $adb->query_result($result, 0, 'count');
-                $isExisting = ($count > 0);
-                file_put_contents($logFile, "  - Query Result: Found $count records.\n", FILE_APPEND);
+            // Handle multiple fields passed as JSON string
+            if (is_string($phoneField) && strpos($phoneField, '[') === 0) {
+                $phoneFields = json_decode($phoneField, true);
             } else {
-                file_put_contents($logFile, "  - Query failed or returned no rows.\n", FILE_APPEND);
+                $phoneFields = is_array($phoneField) ? $phoneField : array($phoneField);
             }
-            
+
+            $results = array();
+            $overallValid = true;
+
+            foreach ($phoneFields as $field) {
+                if (empty($field)) continue;
+                $phoneNumber = (string)$recordModel->get($field);
+                if (empty($phoneNumber)) {
+                    $overallValid = false;
+                    $results[$field] = array(
+                        'has_country_code' => false,
+                        'is_existing' => false,
+                        'phone_number' => '',
+                        'is_empty' => true
+                    );
+                    continue;
+                }
+
+                $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
+                $hasCountryCode = (strlen($cleaned) > 10);
+                if (!$hasCountryCode) {
+                    $overallValid = false;
+                }
+
+                $isExisting = false;
+                $query = "SELECT count(*) as count FROM vtiger_whatsapp 
+                          INNER JOIN vtiger_crmentity ON vtiger_crmentity.crmid = vtiger_whatsapp.whatsappid
+                          WHERE vtiger_crmentity.deleted = 0 AND whatsapp_no = ? 
+                          AND whatsapp_status IN ('sent', 'delivered', 'read')";
+                
+                $result = $adb->pquery($query, array($cleaned));
+                
+                if ($result && $adb->num_rows($result) > 0) {
+                    $isExisting = ($adb->query_result($result, 0, 'count') > 0);
+                }
+
+                $results[$field] = array(
+                    'has_country_code' => $hasCountryCode,
+                    'is_existing' => $isExisting,
+                    'phone_number' => $phoneNumber
+                );
+            }
+
             $resultArr = array(
-                'has_country_code' => $hasCountryCode,
-                'is_existing' => $isExisting,
-                'phone_number' => $phoneNumber
+                'has_country_code' => $overallValid,
+                'fields' => $results
             );
-            file_put_contents($logFile, "  - Final Result: " . json_encode($resultArr) . "\n", FILE_APPEND);
+            file_put_contents($logFile, "  - Final Multi Result: " . json_encode($resultArr) . "\n", FILE_APPEND);
             
             $response->setResult($resultArr);
         } catch (Exception $e) {

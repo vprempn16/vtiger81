@@ -106,7 +106,7 @@ class Whatsapp_Js {
             var recordId = modalContainer.find('[name="record"]').val();
             var sourceModule = modalContainer.find('[name="source_module"]').val();
 
-            if (!phoneField) {
+            if (!phoneField || phoneField.length === 0) {
                 sendBtnSubmit.prop('disabled', true);
                 return;
             }
@@ -117,22 +117,16 @@ class Whatsapp_Js {
                 'mode': 'validateRecipient',
                 'record': recordId,
                 'source_module': sourceModule,
-                'phone_field': phoneField
+                'phone_field': JSON.stringify(phoneField) // Pass as JSON string
             };
 
             app.request.post({ 'data': actionParams }).then(function (err, response) {
                 if (!err && response) {
                     if (response.has_country_code) {
                         sendBtnSubmit.prop('disabled', false);
-                        if (!response.is_existing) {
-                            // Optional warning for new recipients
-                            app.helper.showSuccessNotification({
-                                message: app.vtranslate('Number validated with country code. First time messaging this recipient.')
-                            });
-                        }
                     } else {
                         app.helper.showErrorNotification({
-                            message: app.vtranslate('The selected number does not have a country code. Please update the record or use a different field.')
+                            message: app.vtranslate('One or more selected numbers do not have a country code. Please verify details.')
                         });
                         sendBtnSubmit.prop('disabled', true);
                     }
@@ -256,7 +250,7 @@ class Whatsapp_Js {
             var recipientField = form.find('#whatsappToNumber').val();
             var templateId = form.find('#whatsappTemplate').val();
 
-            if (!recipientField) {
+            if (!recipientField || recipientField.length === 0) {
                 app.helper.showErrorNotification({ message: app.vtranslate('Please select a To Number') });
                 return false;
             }
@@ -285,7 +279,7 @@ class Whatsapp_Js {
             formData.append('channel_id', channelId);
             formData.append('type', type);
             formData.append('details', JSON.stringify(details));
-            formData.append('recipients', JSON.stringify([recipientField]));
+            formData.append('recipients', JSON.stringify(recipientField)); // Already an array
             formData.append('source_module', form.find('[name="source_module"]').val());
 
             var recordId = form.find('[name="record"]').val();

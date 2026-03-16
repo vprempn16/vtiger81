@@ -39,7 +39,7 @@ class WhatsappCustom
         $moduleName = 'Whatsapp';
         $moduleInstance = Vtiger_Module::getInstance($moduleName);
         if (!$moduleInstance) {
-            echo "Module instance not found for $moduleName<br>";
+            $this->logInstall("Module instance not found for $moduleName");
             return;
         }
 
@@ -48,7 +48,7 @@ class WhatsappCustom
         if (empty($moduleInstance->basetable)) {
             $moduleInstance->basetable = 'vtiger_whatsapp';
         }
-        echo "Creating fields for module: $moduleName on table: {$moduleInstance->basetable}<br>";
+        $this->logInstall("Creating fields for module: $moduleName on table: {$moduleInstance->basetable}");
 
         $blocklabel = 'LBL_WHATSAPP_INFORMATION';
         $blockInstance = Vtiger_Block::getInstance($blocklabel, $moduleInstance);
@@ -95,11 +95,11 @@ class WhatsappCustom
                     if (isset($fieldInfo['relatedmodules'])) {
                         $fieldInstance->setRelatedModules($fieldInfo['relatedmodules']);
                     }
-                    echo "Field $fieldName created successfully.<br>";
+                    $this->logInstall("Field $fieldName created successfully.");
                 }
             }
             catch (Exception $e) {
-                echo "Error creating field $fieldName: " . $e->getMessage() . "<br>";
+                $this->logInstall("Error creating field $fieldName: " . $e->getMessage());
             }
         }
     }
@@ -259,9 +259,9 @@ class WhatsappCustom
         $result = $adb->pquery("SELECT tabid FROM vtiger_tab WHERE name = ?", array($moduleName));
         if ($adb->num_rows($result)) {
             $tabid = $adb->query_result($result, 0, 'tabid');
-            $checkResult = $adb->pquery("SELECT * FROM vtiger_entitynames WHERE modulename = ?", array($moduleName));
+            $checkResult = $adb->pquery("SELECT * FROM vtiger_entityname WHERE modulename = ?", array($moduleName));
             if ($adb->num_rows($checkResult) == 0) {
-                $adb->pquery("INSERT INTO vtiger_entitynames (tabid, modulename, tablename, fieldname, entityidfield) VALUES (?,?,?,?,?)",
+                $adb->pquery("INSERT INTO vtiger_entityname (tabid, modulename, tablename, fieldname, entityidfield) VALUES (?,?,?,?,?)",
                     array($tabid, $moduleName, 'vtiger_whatsapp', 'message', 'whatsappid'));
             }
         }
@@ -277,6 +277,12 @@ class WhatsappCustom
             $adb->pquery("INSERT INTO vtiger_ws_entity (id, name, handler_path, handler_class, ismodule) VALUES (?,?,?,?,?)",
                 array($id, $moduleName, 'include/Webservices/VtigerModuleOperation.php', 'VtigerModuleOperation', 1));
         }
+    }
+
+    private function logInstall($message)
+    {
+        $logFile = 'storage/wa_install.log';
+        file_put_contents($logFile, date('Y-m-d H:i:s') . " - " . $message . "\n", FILE_APPEND);
     }
 }
 ?>

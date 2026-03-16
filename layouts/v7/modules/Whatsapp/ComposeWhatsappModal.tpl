@@ -23,11 +23,10 @@
                     <div class="row form-group">
                         <label class="col-sm-3 control-label">{vtranslate('To Number', $MODULE)} <span class="redColor">*</span></label>
                         <div class="col-sm-5">
-                            <select class="select2 form-control" name="to_number" id="whatsappToNumber" data-rule-required="true">
-                                <option value="">{vtranslate('LBL_SELECT_OPTION', $MODULE)}</option>
+                            <select class="select2 form-control" name="to_number[]" id="whatsappToNumber" data-rule-required="true" multiple="multiple">
                                 {foreach key=FIELD_NAME item=PHONE_LABEL from=$PHONE_FIELDS}
                                     {assign var=RECORD_PHONE value=$RECORD_PHONE_NUMBERS[$FIELD_NAME]}
-                                    <option value="{$FIELD_NAME}" {if !empty($RECORD_PHONE)}selected{/if}>
+                                    <option value="{$FIELD_NAME}">
                                         {$PHONE_LABEL}{if !empty($RECORD_PHONE)}: {$RECORD_PHONE}{/if}
                                     </option>
                                 {/foreach}
