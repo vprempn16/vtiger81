@@ -24,8 +24,11 @@ class WhatsappModuleSetup
         echo "Initializing Module and Fields...<br>";
         //$custom->postInstall();
 
-        echo "Adding Header Scripts...<br>";
-        $custom->addHeaderScript();
+        //echo "Adding Header Scripts...<br>";
+        //$custom->addHeaderScript();
+
+	$custom->registerWorkflowTask();
+	echo "Task type registered successfully.\n";
 
         echo "Setup completed successfully.<br>";
     }

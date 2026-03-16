@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<module>
+        <type>extension</type>
+        <name>Whatsapp</name>
+        <label>WhatsApp</label>
+        <version>8.3</version>
+        <dependencies>
+                <vtiger_version>8.0.0</vtiger_version>
+                <vtiger_max_version>8.*</vtiger_max_version>
+        </dependencies>
+</module>
