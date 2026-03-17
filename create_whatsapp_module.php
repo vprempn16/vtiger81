@@ -28,7 +28,13 @@ class WhatsappModuleSetup
         //$custom->addHeaderScript();
 
 	$custom->registerWorkflowTask();
-	echo "Task type registered successfully.\n";
+	echo "Task type registered successfully.<br>";
+
+	echo "Updating fields to include Accounts...<br>";
+	$custom->createFields();
+
+	echo "Adding Related Tabs...<br>";
+	$custom->addRelatedTabs();
 
         echo "Setup completed successfully.<br>";
     }
