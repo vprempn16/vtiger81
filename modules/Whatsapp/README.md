@@ -75,7 +75,17 @@ Implemented in `WhatsAppApiService::formatPhoneNumber`, this multi-level engine 
 
 ---
 
+## 10. Multi-Select Recipient Support & Validation
+* **Modal Optimization**: Updated the "To Number" dropdown in list/detail view modals to be a multi-select Select2 field. Users can now select and target multiple phone numbers belonging to a record concurrently.
+* **Unified Validation Backend**: Enhanced `validateRecipient` in `MassActionAjax.php` to receive array payloads. It tests all selections, returning a consolidated pass/fail binary flag that prevents sending and keeps the action locked if any field value outputs empty or lacks international formatting (>10 digits).
+
+## 11. Stability & Cleanup Updates
+* **Clean buffering Webhook handshake**: Solved hidden include headers outputting pollution break crashes. Added output buffer cleanse triggering purely challenge replies compliance triggers correctly.
+* **Installer Cleanup**: Replaced `echo` statements inside `WhatsappCustom.php` with structured file logging to `storage/wa_install.log` avoiding layout interruptions during automated module installers executions setup frameworks.
+
+---
+
 ## Next Steps Remaining
-1.  **Messaging Components UI**: Build widget views / chat interface within Contact/Lead summary views.
-2.  **Interactive Messages**: Extend logic to handle List and Reply Button interactive payloads.
-3.  **Final Installation Package**: Compile changes into a `manifest.xml` package.
+1. **Messaging Components UI**: Build widget views / chat interface within Contact/Lead summary views.
+2. **Interactive Messages**: Extend logic to handle List and Reply Button interactive payloads.
+3. **Chat Widgets Layout**: Dynamic side modules chats thread integrations support.

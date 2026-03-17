@@ -22,7 +22,8 @@ class WhatsAppApiService
     {
         $db = PearDatabase::getInstance();
         $cleaned = preg_replace('/[^0-9]/', '', $number);
-        if (empty($cleaned)) return array();
+        if (empty($cleaned))
+            return array();
 
         // We search in Leads, Contacts, and Accounts
         $queries = array(
@@ -69,7 +70,7 @@ class WhatsAppApiService
         // Audio
         'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/amr', 'audio/ogg', 'audio/opus',
         // Documents
-        'application/vnd.ms-powerpoint', 'application/msword', 
+        'application/vnd.ms-powerpoint', 'application/msword',
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'application/vnd.openxmlformats-officedocument.presentationml.presentation',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -84,7 +85,8 @@ class WhatsAppApiService
     {
         if (is_numeric($channel)) {
             $this->channel = Settings_Whatsapp_Record_Model::getInstanceById($channel, 'Settings:Whatsapp');
-        } else {
+        }
+        else {
             $this->channel = $channel;
         }
 
@@ -143,7 +145,7 @@ class WhatsAppApiService
     {
         // 1. Clean all symbols (spaces, dashes, parens)
         $cleaned = preg_replace('/[^0-9]/', '', $phoneNumber);
-        
+
         // Return cleaned number (User has new plan for normalization)
         return $cleaned;
     }
@@ -247,7 +249,7 @@ class WhatsAppApiService
      */
     public function sendMessage($to, $templateName, $languageCode, $components = array())
     {
-        // Implementation for sending messages via Meta API
+    // Implementation for sending messages via Meta API
     }
 
     // --- Methods moved from MassActionAjax ---
@@ -258,7 +260,7 @@ class WhatsAppApiService
         $params = array($channelId);
         $query = "SELECT id, template_name, language FROM vtiger_whatsapp_templates 
                   WHERE whatsapp_channel_id = ? AND status = 'APPROVED'";
-        
+
         if (!empty($sourceModule)) {
             $query .= " AND module = ?";
             $params[] = $sourceModule;
@@ -326,30 +328,31 @@ class WhatsAppApiService
 
             // Replace parameters like {{1}}, {{2}} or {{name}}
             return preg_replace_callback('/\{\{([^}]+)\}\}/', function ($matches) use ($contextMappings, $recordModel, &$errors) {
-                $varName = trim($matches[1]);
-                $fullVar = '{{' . $varName . '}}'; // Match the DB column format
+                    $varName = trim($matches[1]);
+                    $fullVar = '{{' . $varName . '}}'; // Match the DB column format
+    
+                    // Also check if mapping exists without brackets just in case
+                    $lookupVar = isset($contextMappings[$fullVar]) ? $fullVar : (isset($contextMappings[$varName]) ? $varName : null);
 
-                // Also check if mapping exists without brackets just in case
-                $lookupVar = isset($contextMappings[$fullVar]) ? $fullVar : (isset($contextMappings[$varName]) ? $varName : null);
+                    if ($lookupVar !== null) {
+                        $crmField = $contextMappings[$lookupVar];
+                        $val = $recordModel->get($crmField);
 
-                if ($lookupVar !== null) {
-                    $crmField = $contextMappings[$lookupVar];
-                    $val = $recordModel->get($crmField);
+                        // VALIDATION CHECK: Value is mandatory
+                        if ($val === '' || $val === null) {
+                            $moduleModel = $recordModel->getModule();
+                            $fieldModel = $moduleModel->getField($crmField);
+                            $fieldLabel = $fieldModel ? vtranslate($fieldModel->get('label'), $recordModel->getModuleName()) : $crmField;
 
-                    // VALIDATION CHECK: Value is mandatory
-                    if ($val === '' || $val === null) {
-                        $moduleModel = $recordModel->getModule();
-                        $fieldModel = $moduleModel->getField($crmField);
-                        $fieldLabel = $fieldModel ? vtranslate($fieldModel->get('label'), $recordModel->getModuleName()) : $crmField;
-
-                        $errors[] = "Field value is mandatory: '$fieldLabel' has no value.";
-                        return "<span style='color:red; font-weight:bold;'>[Missing: $fieldLabel]</span>";
+                            $errors[] = "Field value is mandatory: '$fieldLabel' has no value.";
+                            return "<span style='color:red; font-weight:bold;'>[Missing: $fieldLabel]</span>";
+                        }
+                        return $val;
                     }
-                    return $val;
+                    return $matches[0]; // Return original if no mapping found
                 }
-                return $matches[0]; // Return original if no mapping found
-            }, $text);
-        };
+                , $text);
+            };
 
         // Iterate standard components: HEADER, BODY, FOOTER, BUTTONS
         foreach ($components as $comp) {
@@ -364,14 +367,17 @@ class WhatsAppApiService
                 if (!empty($text)) {
                     $previewHtml .= "<strong>{$text}</strong><br><br>";
                 }
-            } else if ($type === 'BODY') {
+            }
+            else if ($type === 'BODY') {
                 $text = isset($comp['text']) ? $comp['text'] : '';
                 $text = $replaceVariables($text, 'BODY');
                 $previewHtml .= "<div>" . nl2br($text) . "</div><br>"; // Allow HTML spanning for errors
-            } else if ($type === 'FOOTER') {
+            }
+            else if ($type === 'FOOTER') {
                 $text = isset($comp['text']) ? $comp['text'] : '';
                 $previewHtml .= "<small class='text-muted'>" . htmlspecialchars($text) . "</small><br>";
-            } else if ($type === 'BUTTONS') {
+            }
+            else if ($type === 'BUTTONS') {
                 $previewHtml .= "<div style='margin-top:10px;'>";
                 foreach ($comp['buttons'] as $index => $btn) {
                     // $index is 0-based from JSON, mapping uses 1-based index (e.g. BUTTONS_1)
@@ -380,7 +386,8 @@ class WhatsAppApiService
                     if ($btnType == 'URL') {
                         $btnUrl = $replaceVariables($btn['url'], 'BUTTONS_' . ($index + 1));
                         $previewHtml .= "<button class='btn btn-default btn-sm' disabled><i class='fa fa-external-link'></i> {$btnText} <br><small>({$btnUrl})</small></button> ";
-                    } else {
+                    }
+                    else {
                         $previewHtml .= "<button class='btn btn-default btn-sm' disabled>{$btnText}</button> ";
                     }
                 }
@@ -438,8 +445,17 @@ class WhatsAppApiService
             $recordModel->set('whatsapp_info', isset($data['info']) ? json_encode($data['info'], JSON_UNESCAPED_UNICODE) : null);
             $recordModel->set('assigned_user_id', $data['assigned_user_id'] ?? Users_Record_Model::getCurrentUserModel()->getId());
             $recordModel->save();
+
+            // Link to related module via vtiger_crmentityrel
+            if ($recordModel->getId() && !empty($data['related_id']) && !empty($data['related_module'])) {
+                $db = PearDatabase::getInstance();
+                $db->pquery("INSERT INTO vtiger_crmentityrel (crmid, module, relcrmid, relmodule) VALUES (?, ?, ?, ?)",
+                    array($data['related_id'], $data['related_module'], $recordModel->getId(), 'Whatsapp'));
+            }
+
             return $recordModel;
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             error_log("WhatsApp createLog Error: " . $e->getMessage());
             return false;
         }
@@ -463,18 +479,20 @@ class WhatsAppApiService
                 $info['status'] = 'sent';
                 $info['response'] = $response;
                 $recordModel->set('message_id', $messageId);
-            } else {
+            }
+            else {
                 $status = 'failed';
                 $info['status'] = 'failed';
                 $info['error'] = $response;
             }
-            
+
             $recordModel->set('whatsapp_status', $status);
             $recordModel->set('whatsapp_info', json_encode($info, JSON_UNESCAPED_UNICODE));
             $recordModel->set('id', $recordModel->getId());
             $recordModel->set('mode', 'edit');
             $recordModel->save();
-        } catch (Exception $e) {
+        }
+        catch (Exception $e) {
             error_log("WhatsApp updateLog Error: " . $e->getMessage());
         }
     }
@@ -510,10 +528,12 @@ class WhatsAppApiService
             $buildFull = $this->getTemplatePreview($templateId, $logData['related_id'], $logData['crm_module']);
             if ($buildFull['success']) {
                 $logData['message'] = strip_tags(str_replace('<br>', "\n", $buildFull['preview_html']));
-            } else {
+            }
+            else {
                 $logData['message'] = "Template: $templateName (Preview Failed: " . ($buildFull['message'] ?? 'Unknown Error') . ")";
             }
-        } else {
+        }
+        else {
             $logData['message'] = "Template: $templateName";
         }
 
@@ -531,7 +551,7 @@ class WhatsAppApiService
         );
 
         $response = self::request("{$this->baseUrl}/{$this->phoneNumberId}/messages", $this->accessToken, $payload);
-        
+
         // DEBUG LOGGING
         file_put_contents('/tmp/wa_payload.log', "\n---\n" . date('Y-m-d H:i:s') . "\n" . json_encode([
             'to' => $to,
@@ -590,10 +610,10 @@ class WhatsAppApiService
                 return array('success' => false, 'message' => 'Failed to create WhatsApp storage directory');
             }
         }
-        
+
         $uniqueName = time() . '_' . $fileName;
         $localPath = $storageDir . $uniqueName;
-        
+
         if (!move_uploaded_file($filePath, $localPath)) {
             // If it's not an uploaded file (e.g. from local server path), try copy
             if (!copy($filePath, $localPath)) {
@@ -612,13 +632,13 @@ class WhatsAppApiService
 
         if ($response['success'] && !empty($response['response']['id'])) {
             $mediaId = $response['response']['id'];
-            
+
             // Log to vtiger_whatsapp_media for tracking
             $db = PearDatabase::getInstance();
             $mediaTableId = $db->getUniqueID('vtiger_whatsapp_media');
             $db->pquery("INSERT INTO vtiger_whatsapp_media (id, whatsapp_channel_id, media_id, mime_type, file_name, local_path, created_by) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?)", 
-                         array($mediaTableId, $this->channel ? $this->channel->getId() : null, $mediaId, $mimeType, $fileName, $localPath, Users_Record_Model::getCurrentUserModel()->getId()));
+                         VALUES (?, ?, ?, ?, ?, ?, ?)",
+                array($mediaTableId, $this->channel ? $this->channel->getId() : null, $mediaId, $mimeType, $fileName, $localPath, Users_Record_Model::getCurrentUserModel()->getId()));
 
             return array('success' => true, 'media_id' => $mediaId);
         }
@@ -691,14 +711,14 @@ class WhatsAppApiService
     public function buildTemplateComponents($templateId, $recordId, $sourceModule)
     {
         $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $sourceModule);
-        
+
         $db = PearDatabase::getInstance();
         $query = "SELECT component_type, template_variable, crm_field FROM vtiger_whatsapp_template_map WHERE template_id = ?";
         $result = $db->pquery($query, array($templateId));
         $valueMap = array();
         while ($row = $db->fetch_array($result)) {
             $val = $recordModel->get($row['crm_field']);
-            $valueMap[$row['component_type']][$row['template_variable']] = (string) $val;
+            $valueMap[$row['component_type']][$row['template_variable']] = (string)$val;
         }
 
         return $this->buildTemplateComponentsWithMapping($templateId, $recordModel, $valueMap);
@@ -710,7 +730,7 @@ class WhatsAppApiService
         foreach ($mapping as $componentType => $vars) {
             foreach ($vars as $varName => $crmField) {
                 $val = $recordModel->get($crmField);
-                $valueMap[$componentType][$varName] = (string) $val;
+                $valueMap[$componentType][$varName] = (string)$val;
             }
         }
         return $this->buildTemplateComponentsWithMapping($templateId, $recordModel, $valueMap);
@@ -740,18 +760,20 @@ class WhatsAppApiService
                         'parameters' => $this->buildParams($component['text'], $valueMap['HEADER'] ?? array(), $format === 'NAMED')
                     );
                 }
-            } elseif ($type === 'BODY') {
+            }
+            elseif ($type === 'BODY') {
                 $builtComponents[] = array(
                     'type' => 'body',
                     'parameters' => $this->buildParams($component['text'], $valueMap['BODY'] ?? array(), $format === 'NAMED')
                 );
-            } elseif ($type === 'BUTTONS') {
+            }
+            elseif ($type === 'BUTTONS') {
                 foreach ($component['buttons'] as $index => $button) {
                     if ($button['type'] === 'URL' && strpos($button['url'], '{{') !== false) {
                         $builtComponents[] = array(
                             'type' => 'button',
                             'sub_type' => 'url',
-                            'index' => (string) $index,
+                            'index' => (string)$index,
                             'parameters' => $this->buildParams($button['url'], $valueMap['BUTTONS_' . ($index + 1)] ?? array(), $format === 'NAMED')
                         );
                     }
@@ -769,11 +791,11 @@ class WhatsAppApiService
         if (preg_match_all('/\{\{([a-zA-Z0-9_]+)\}\}/', $text, $matches)) {
             foreach ($matches[1] as $index => $varName) {
                 $fullMatch = $matches[0][$index]; // {{name}}
-                
+
                 // Try with braces first, then without
                 $val = isset($values[$fullMatch]) ? $values[$fullMatch] : (isset($values[$varName]) ? $values[$varName] : '');
 
-                $param = array('type' => 'text', 'text' => (string) $val);
+                $param = array('type' => 'text', 'text' => (string)$val);
 
                 // Meta NAMED templates require parameter_name. 
                 // We use isNamed flag OR check if the variable itself is non-numeric.

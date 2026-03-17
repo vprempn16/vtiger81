@@ -11,6 +11,7 @@ class WhatsappCustom
         $this->registerWorkflowTask();
         $this->updateEntityNames();
         $this->updateWsEntity();
+        $this->addRelatedTabs();
     }
 
     public function postDisable()
@@ -22,6 +23,7 @@ class WhatsappCustom
     {
         $this->settingsLink();
         $this->addHeaderScript();
+        $this->addRelatedTabs();
     }
 
     public function postUpdate()
@@ -32,6 +34,7 @@ class WhatsappCustom
         $this->registerWorkflowTask();
         $this->updateEntityNames();
         $this->updateWsEntity();
+        $this->addRelatedTabs();
     }
 
     public function createFields()
@@ -68,11 +71,15 @@ class WhatsappCustom
             'crm_field' => array('label' => 'CRM Field', 'uitype' => 1, 'typeofdata' => 'V~O', 'columntype' => 'VARCHAR(50)'),
             'crm_field_value' => array('label' => 'CRM Field Value', 'uitype' => 11, 'typeofdata' => 'V~O', 'columntype' => 'VARCHAR(50)'),
             'related_module' => array('label' => 'Related Module', 'uitype' => 1, 'typeofdata' => 'V~O', 'columntype' => 'VARCHAR(50)'),
-            'related_id' => array('label' => 'Related ID', 'uitype' => 10, 'typeofdata' => 'I~O', 'columntype' => 'INT(19)', 'relatedmodules' => array('Contacts', 'Leads')),
+            'related_id' => array('label' => 'Related ID', 'uitype' => 10, 'typeofdata' => 'I~O', 'columntype' => 'INT(19)', 'relatedmodules' => array('Contacts', 'Leads', 'Accounts')),
             'conversation_key' => array('label' => 'Conversation Key', 'uitype' => 1, 'typeofdata' => 'V~O', 'columntype' => 'VARCHAR(100)'),
             'media_id' => array('label' => 'Media ID', 'uitype' => 1, 'typeofdata' => 'V~O', 'columntype' => 'VARCHAR(255)'),
             'whatsapp_status' => array('label' => 'Whatsapp Status', 'uitype' => 16, 'typeofdata' => 'V~O', 'columntype' => 'VARCHAR(50)', 'picklistvalues' => array('Sent', 'Delivered', 'Read', 'Failed', 'Received')),
-            'whatsapp_info' => array('label' => 'Whatsapp Info', 'uitype' => 21, 'typeofdata' => 'V~O', 'columntype' => 'TEXT')
+            'whatsapp_info' => array('label' => 'Whatsapp Info', 'uitype' => 21, 'typeofdata' => 'V~O', 'columntype' => 'TEXT'),
+            'assigned_user_id' => array('label' => 'Assigned To', 'uitype' => 53, 'typeofdata' => 'V~M', 'columntype' => 'INT(11)', 'column' => 'smownerid', 'table' => 'vtiger_crmentity'),
+            'createdtime' => array('label' => 'Created Time', 'uitype' => 70, 'typeofdata' => 'DT~O', 'columntype' => 'DATETIME', 'table' => 'vtiger_crmentity'),
+            'modifiedtime' => array('label' => 'Modified Time', 'uitype' => 70, 'typeofdata' => 'DT~O', 'columntype' => 'DATETIME', 'table' => 'vtiger_crmentity'),
+            'modifiedby' => array('label' => 'Modified By', 'uitype' => 52, 'typeofdata' => 'V~O', 'columntype' => 'INT(11)', 'column' => 'modifiedby', 'table' => 'vtiger_crmentity')
         );
 
         foreach ($fields as $fieldName => $fieldInfo) {
@@ -82,8 +89,8 @@ class WhatsappCustom
                     $fieldInstance = new Vtiger_Field();
                     $fieldInstance->name = $fieldName;
                     $fieldInstance->label = $fieldInfo['label'];
-                    $fieldInstance->table = $moduleInstance->basetable;
-                    $fieldInstance->column = $fieldName;
+                    $fieldInstance->table = isset($fieldInfo['table']) ? $fieldInfo['table'] : $moduleInstance->basetable;
+                    $fieldInstance->column = isset($fieldInfo['column']) ? $fieldInfo['column'] : $fieldName;
                     $fieldInstance->columntype = $fieldInfo['columntype'];
                     $fieldInstance->uitype = $fieldInfo['uitype'];
                     $fieldInstance->typeofdata = $fieldInfo['typeofdata'];
@@ -276,6 +283,25 @@ class WhatsappCustom
             $id = $adb->getUniqueID('vtiger_ws_entity');
             $adb->pquery("INSERT INTO vtiger_ws_entity (id, name, handler_path, handler_class, ismodule) VALUES (?,?,?,?,?)",
                 array($id, $moduleName, 'include/Webservices/VtigerModuleOperation.php', 'VtigerModuleOperation', 1));
+        }
+    }
+
+    public function addRelatedTabs()
+    {
+        $whatsappModule = Vtiger_Module::getInstance('Whatsapp');
+        $modules = array('Contacts', 'Leads', 'Accounts');
+        foreach ($modules as $moduleName) {
+            $moduleInstance = Vtiger_Module::getInstance($moduleName);
+            if ($moduleInstance) {
+                // Unset previous relation to avoid duplicates (safeguard)
+                $moduleInstance->unsetRelatedList($whatsappModule, 'Whatsapp', 'get_related_list');
+
+                $fieldInstance = Vtiger_Field::getInstance('related_id', $whatsappModule);
+                $fieldId = $fieldInstance ? $fieldInstance->id : null;
+
+                $moduleInstance->setRelatedList($whatsappModule, 'Whatsapp', array(), 'get_related_list', $fieldId);
+                $this->logInstall("Related tab added for $moduleName with FieldId: " . ($fieldId ?? 'none'));
+            }
         }
     }
 

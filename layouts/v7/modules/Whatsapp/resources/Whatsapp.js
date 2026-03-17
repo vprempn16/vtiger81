@@ -12,6 +12,11 @@ class Whatsapp_Js {
      * Function to register events
      */
     registerEvents() {
+        var moduleName = app.getModuleName();
+        var allowedModules = ['Contacts', 'Leads', 'Accounts'];
+        if (!allowedModules.includes(moduleName)) {
+            return;
+        }
         this.addSendWhatsappButton();
     }
 
@@ -97,6 +102,7 @@ class Whatsapp_Js {
         var templatePreviewBox = modalContainer.find('#whatsappTemplatePreviewBox');
         var sendBtnLabel = modalContainer.find('#sendBtnLabel');
         var sendBtnSubmit = modalContainer.find('#sendWhatsappBtnSubmit');
+        var isNumberValid = false; // Track overall number validation state
 
         // Handle Recipient Change (Validation)
         var recipientSelect = modalContainer.find('#whatsappToNumber');
@@ -122,13 +128,12 @@ class Whatsapp_Js {
 
             app.request.post({ 'data': actionParams }).then(function (err, response) {
                 if (!err && response) {
-                    if (response.has_country_code) {
-                        sendBtnSubmit.prop('disabled', false);
-                    } else {
+                    isNumberValid = response.has_country_code;
+                    sendBtnSubmit.prop('disabled', !isNumberValid);
+                    if (!isNumberValid) {
                         app.helper.showErrorNotification({
                             message: app.vtranslate('One or more selected numbers do not have a country code. Please verify details.')
                         });
-                        sendBtnSubmit.prop('disabled', true);
                     }
                 }
             });
@@ -181,7 +186,7 @@ class Whatsapp_Js {
                 templatePreviewContainer.hide();
                 freeFormContainer.show();
                 sendBtnLabel.text(app.vtranslate('Send Message'));
-                modalContainer.find('#sendWhatsappBtnSubmit').prop('disabled', false);
+                modalContainer.find('#sendWhatsappBtnSubmit').prop('disabled', !isNumberValid); // Check number validity
             } else {
                 // Show Template Preview
                 freeFormContainer.hide();
@@ -203,7 +208,7 @@ class Whatsapp_Js {
                     if (!err && response) {
                         // Response should contain the parsed text
                         templatePreviewBox.html(response.preview_html);
-                        if (response.isValid === false) {
+                        if (response.isValid === false || !isNumberValid) {
                             modalContainer.find('#sendWhatsappBtnSubmit').prop('disabled', true);
                         } else {
                             modalContainer.find('#sendWhatsappBtnSubmit').prop('disabled', false);

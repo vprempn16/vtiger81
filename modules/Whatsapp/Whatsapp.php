@@ -21,16 +21,20 @@ class Whatsapp extends Vtiger_CRMEntity
         /* Format: Field Label => Array(tablename, columnname) */
         // tablename should not have prefix 'vtiger_'
         'Message' => array('whatsapp', 'message'),
+        'Type' => array('whatsapp', 'type'),
+        'To Number' => array('whatsapp', 'crm_field_value'),
         'Direction' => array('whatsapp', 'direction'),
-        'Status' => array('whatsapp', 'status'),
-        'Assigned To' => array('crmentity', 'smownerid')
+        'Assigned To' => array('crmentity', 'smownerid'),
+        'Status' => array('whatsapp', 'whatsapp_status')
     );
     var $list_fields_name = array(
         /* Format: Field Label => fieldname */
         'Message' => 'message',
+        'Type' => 'type',
+        'To Number' => 'crm_field_value',
         'Direction' => 'direction',
-        'Status' => 'status',
         'Assigned To' => 'assigned_user_id',
+        'Status' => 'whatsapp_status'
     );
 
     // Make the field link to detail view
@@ -72,13 +76,17 @@ class Whatsapp extends Vtiger_CRMEntity
             $WhatsappCustom = new WhatsappCustom();
             if ($eventType == 'module.disabled') {
                 $WhatsappCustom->postDisable();
-            } else if ($eventType == 'module.enabled') {
+            }
+            else if ($eventType == 'module.enabled') {
                 $WhatsappCustom->postEnable();
-            } else if ($eventType == 'module.preuninstall') {
+            }
+            else if ($eventType == 'module.preuninstall') {
                 $WhatsappCustom->postDisable();
-            } else if ($eventType == 'module.postinstall') {
+            }
+            else if ($eventType == 'module.postinstall') {
                 $WhatsappCustom->postInstall();
-            } else if ($eventType == 'module.postupdate') {
+            }
+            else if ($eventType == 'module.postupdate') {
                 $WhatsappCustom->postUpdate();
             }
         }
