@@ -1,0 +1,134 @@
+2026-03-17 07:56:48 - Validating starting: Record=156, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => mobile
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => mobile
+)
+
+  - Current phoneField Type: string | Value: mobile
+2026-03-17 07:57:29 - Validating starting: Record=156, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+2026-03-17 07:57:34 - Validating starting: Record=156, Module=Contacts
+  - Final Multi Result: {"has_country_code":false,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"},"otherphone":{"has_country_code":false,"is_existing":false,"phone_number":"8261297129"}}}
+2026-03-17 07:57:39 - Validating starting: Record=156, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+2026-03-17 07:57:41 - Validating starting: Record=156, Module=Contacts
+  - Final Multi Result: {"has_country_code":false,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"},"assistantphone":{"has_country_code":false,"is_existing":false,"phone_number":"","is_empty":true}}}
+2026-03-17 07:57:46 - Validating starting: Record=156, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+2026-03-17 07:57:51 - Validating starting: Record=156, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"phone":{"has_country_code":true,"is_existing":false,"phone_number":"+91 81487 70155"},"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => phone
+    [1] => mobile
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => phone
+    [1] => mobile
+)
+
+  - Current phoneField Type: string | Value: phone
+  - Current phoneField Type: string | Value: mobile
+2026-03-17 08:38:40 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => mobile
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => mobile
+)
+
+  - Current phoneField Type: string | Value: mobile
+2026-03-17 08:39:52 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+2026-03-17 08:39:55 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"phone":{"has_country_code":true,"is_existing":false,"phone_number":"+91 81487 70155"},"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => phone
+    [1] => mobile
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => phone
+    [1] => mobile
+)
+
+  - Current phoneField Type: string | Value: phone
+  - Current phoneField Type: string | Value: mobile
+2026-03-17 08:40:29 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+2026-03-17 08:40:30 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":false,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"},"homephone":{"has_country_code":false,"is_existing":false,"phone_number":"","is_empty":true}}}
+2026-03-17 08:40:35 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":false,"fields":{"homephone":{"has_country_code":false,"is_existing":false,"phone_number":"","is_empty":true}}}
+2026-03-17 08:40:40 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":false,"fields":{"assistantphone":{"has_country_code":false,"is_existing":false,"phone_number":"","is_empty":true}}}
+2026-03-17 08:40:47 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => mobile
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => mobile
+)
+
+  - Current phoneField Type: string | Value: mobile
+2026-03-17 08:41:33 - Validating starting: Record=2, Module=Leads
+  - Final Multi Result: {"has_country_code":true,"fields":{"phone":{"has_country_code":true,"is_existing":false,"phone_number":"91938416117"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => phone
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => phone
+)
+
+  - Current phoneField Type: string | Value: phone
+2026-03-17 08:41:56 - Validating starting: Record=139, Module=Accounts
+  - Final Multi Result: {"has_country_code":true,"fields":{"otherphone":{"has_country_code":true,"is_existing":false,"phone_number":"+918261297129"}}}
+2026-03-17 08:42:59 - Validating starting: Record=139, Module=Accounts
+  - Final Multi Result: {"has_country_code":true,"fields":{"otherphone":{"has_country_code":true,"is_existing":false,"phone_number":"+918261297129"}}}
+2026-03-17 08:43:37 - Validating starting: Record=139, Module=Accounts
+  - Final Multi Result: {"has_country_code":true,"fields":{"otherphone":{"has_country_code":true,"is_existing":false,"phone_number":"+918261297129"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => otherphone
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => otherphone
+)
+
+  - Current phoneField Type: string | Value: otherphone
+2026-03-17 09:31:30 - Validating starting: Record=202, Module=Contacts
+  - Final Multi Result: {"has_country_code":true,"fields":{"mobile":{"has_country_code":true,"is_existing":false,"phone_number":"+919789687940"}}}
+sendWhatsappMessage Recipients Raw: Array
+(
+    [0] => mobile
+)
+
+sendWhatsappMessage Recipients Decoded: Array
+(
+    [0] => mobile
+)
+
+  - Current phoneField Type: string | Value: mobile

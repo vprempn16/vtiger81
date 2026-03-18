@@ -12,20 +12,18 @@ class CommentMentionSendMail extends VTEventHandler {
 			$moduleName = $data->getModuleName();
 			if ($moduleName == 'ModComments') {
 				global $current_user,$adb,$site_URL;
-                $validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
-                $licensekey_records = $validator->getRecordDetails();
-                $license_key = $licensekey_records['cmtmention_license_key'];
-                $license_key = Vtiger_Functions::fromProtectedText($license_key);
-                $maskedKey = substr($license_key, 0, 4) . str_repeat('*', strlen($license_key) - 8) . substr($license_key, -4);
-                $is_validate = $validator->apiCall($license_key,'validate');
-                $is_active = $validator->apiCall($license_key,'is_active');
-                $licenseview_url = $validator->getLicenseViewUrl();
-                if(!$is_validate['iskeyvalid']){
-                    return false;
-                }
-                if(!$is_active['iskeyactive']){
-                    return false;
-                }
+				$validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
+				$validator->getInstance($request);
+
+				$is_validate = $validator->apiCall('validate');
+				$is_active = $validator->apiCall('is_active');
+				$licenseview_url = $validator->getLicenseViewUrl();
+				if(!$is_validate['iskeyvalid']){
+					return false;
+				}
+				if(!$is_active['iskeyactive']){
+					return false;
+				}
 				$isMailSendPermission = $this->isMailSendPermission('comment_mentions');
 				if($isMailSendPermission){
 					$mail = new PHPMailer(true);

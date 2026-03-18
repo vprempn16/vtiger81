@@ -1,0 +1,59 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 25.01.2016, 12:50:12
+    Author     : Alex
+*/
+
+span#rowVDNotifier {
+    color: #fff;
+    width: 18px;
+    display: inline-block;
+    background: red;
+    text-align: center;
+    border-radius: 9px;
+     -moz-border-radius: 9px;
+    -webkit-border-radius: 9px;
+    position: absolute;
+    top: 8px;
+    left: 8px;
+}
+
+#VDNotifierProHeader {
+    overflow-x: hidden;
+    min-height: 150px;
+    max-height: 450px;
+    width: 350px !important;
+    padding: 5px;
+}
+.VDNotifierPro-ul {
+    left:-331px !important;
+    background: #f5f5f5;
+    
+}
+
+#VDNotifierProSettingContainer {
+    display:none;
+}
+#VDNotifierSetting .span4 div {
+    text-align: right;
+}
+.footerVDNotifier {
+    text-align: center;
+    font-size: 10px;
+    color: #777;
+}
+.footerVDNotifier a {
+    padding: 0 1px;
+    display: inline;
+}
+#VDNotifierProHeader a {
+    display: inline;
+    padding: 0 0px;
+}
+.vdmt5 {
+    margin-top: 5px!important;
+}

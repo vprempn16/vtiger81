@@ -7,8 +7,23 @@ class Settings_VTAtomCommentsMentions_SaveAjax_Action extends Settings_Vtiger_Ba
 		$type = $request->get('type');
 		$linklabel = $request->get('linklabel');
 		$return = array('success'=>false,'message'=>'Invalid Request');
+		$validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
+		$key_valid = true;
+                $validator->getInstance($request);
+
+                $is_validate = $validator->apiCall('validate');
+                $is_active = $validator->apiCall('is_active');
+                $licenseview_url = $validator->getLicenseViewUrl();
+                if(!$is_validate['iskeyvalid']){
+                        $key_valid = false;
+			$return = array('success'=>false,'message'=>'License key is not valid');
+                }
+                if(!$is_active['iskeyactive']){
+			$key_valid = false;
+			$return = array('success'=>false,'message'=>'License key is Inactive');
+                }
 		$is_checked = $request->get('ischecked');
-		if($type != ''){
+		if($type != '' && $key_valid){
 			if($type =='send_commentmail'){
 				$res  = $this->commentsOnRel($is_checked,$type);
 				$return = array('success'=>$res,);

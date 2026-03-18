@@ -45,7 +45,7 @@
 									<td class="{$WIDTHTYPE} fieldLabel"><label>{vtranslate('License Key', $QUALIFIED_MODULE)}</label></td>
 									<td class="{$WIDTHTYPE} fieldValue" style="width:70%;" >
 										<div class=" col-lg-6 col-md-6 col-sm-12">
-											<input type="text" {if $API_KEY neq ''} placeholder="{$APIKEY}" {/if} name="cmtmention_license_key" value="" class="inputElement" name="from_email_field" data-rule-email="true" data-rule-illegal="true" />
+											<input type="text" {if $API_KEY neq ''} placeholder="{$APIKEY}" {/if} name="{$MODULENAME}" value="" class="inputElement" name="from_email_field" data-rule-email="true" data-rule-illegal="true" />
                                             {if $IS_KEYVALID eq false && $LICENSE_KEY neq ''} <br><span style="color:red;"> Key is not valid</span>  {/if}
 										</div>
 									</td>

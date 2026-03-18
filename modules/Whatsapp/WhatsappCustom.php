@@ -4,8 +4,8 @@ class WhatsappCustom
 {
     public function postInstall()
     {
-        $this->createFields();
         $this->createTables();
+        $this->createFields();
         $this->settingsLink();
         $this->addHeaderScript();
         $this->registerWorkflowTask();
@@ -28,8 +28,8 @@ class WhatsappCustom
 
     public function postUpdate()
     {
-        $this->createFields();
         $this->createTables();
+        $this->createFields();
         $this->settingsLink();
         $this->registerWorkflowTask();
         $this->updateEntityNames();
@@ -94,7 +94,12 @@ class WhatsappCustom
                     $fieldInstance->columntype = $fieldInfo['columntype'];
                     $fieldInstance->uitype = $fieldInfo['uitype'];
                     $fieldInstance->typeofdata = $fieldInfo['typeofdata'];
+
+                    // Debug Log before core crashes
+                    $this->logInstall("-> ATTEMPTING addField: $fieldName | Table: {$fieldInstance->table} | Column: {$fieldInstance->column} | UiType: {$fieldInstance->uitype} | TypeOfData: {$fieldInstance->typeofdata} | ColType: {$fieldInstance->columntype}");
+
                     $blockInstance->addField($fieldInstance);
+                    $this->logInstall("-> SUCCESS addField: $fieldName");
 
                     if (isset($fieldInfo['picklistvalues'])) {
                         $fieldInstance->setPicklistValues($fieldInfo['picklistvalues']);
@@ -115,6 +120,16 @@ class WhatsappCustom
     {
         global $adb;
         $tables = array(
+            'vtiger_whatsapp' => "CREATE TABLE IF NOT EXISTS `vtiger_whatsapp` (
+                `whatsappid` INT(11) NOT NULL,
+                PRIMARY KEY (`whatsappid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+            
+            'vtiger_whatsappcf' => "CREATE TABLE IF NOT EXISTS `vtiger_whatsappcf` (
+                `whatsappid` INT(11) NOT NULL,
+                PRIMARY KEY (`whatsappid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+
             'vtiger_whatsapp_channels' => "CREATE TABLE IF NOT EXISTS vtiger_whatsapp_channels (
                 id INT(19) AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(255),

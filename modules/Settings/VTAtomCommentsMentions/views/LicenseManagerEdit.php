@@ -10,14 +10,14 @@ class Settings_VTAtomCommentsMentions_LicenseManagerEdit_View extends Settings_V
         $is_validate =  [];
         $is_active = [];
 
-        $records = $validator->getRecordDetails();
-        $license_key = $records['cmtmention_license_key'];
-        $license_key = Vtiger_Functions::fromProtectedText($license_key);
+        $validator->getInstance($request);
+        $license_key = $validator->getLicenseKey();
         if($license_key !=''){ 
             $maskedKey = substr($license_key, 0, 4) . str_repeat('*', strlen($license_key) - 8) . substr($license_key, -4);
         }
-        $is_validate = $validator->apiCall($license_key,'validate');
-        $is_active = $validator->apiCall($license_key,'is_active');
+        $is_validate = $validator->apiCall('validate');
+        $is_active = $validator->apiCall('is_active');
+
         $iskeyactive = $is_active['iskeyactive'] ? true : false;
         $iskeyvalid = $is_validate['iskeyvalid'] ? true : false;
         $viewer->assign("API_KEY",$license_key);
@@ -25,6 +25,7 @@ class Settings_VTAtomCommentsMentions_LicenseManagerEdit_View extends Settings_V
         $viewer->assign("IS_KEYVALID",$iskeyvalid);
         $viewer->assign("IS_KEYACTIVE",$iskeyactive);
         $viewer->assign("KEYACTIVE",$request->get('keyactive'));
+	$viewer->assign("MODULENAME",$moduleName);
         $viewer->assign("LICENSE_KEY",$license_key);
     
         $viewer->view("LicenseManagerEdit.tpl", $qualifiedModuleName);

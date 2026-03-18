@@ -18,15 +18,12 @@ class Settings_VTAtomCommentsMentions_ActiveDeactiveKey_Action extends  Settings
         $result = false;
         $message = 'failed';
         $action = $request->get('mode');
-        $license_key = $request->get('mode');
-        $validator = new Settings_AtomPipeline_LicenseManager_Model();
-        $records = $validator->getRecordDetails();
-        $license_key = $records['cmtmention_license_key'];
-        $license_key = Vtiger_Functions::fromProtectedText($license_key);
+        $validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
 
-        $is_validate = $validator->apiCall($license_key,'validate');
+	$validator->getInstance($request);
+        $is_validate = $validator->apiCall('validate');
         if($is_validate['iskeyvalid']){
-            $api_response = $validator->apiCall($license_key,$action);
+            $api_response = $validator->apiCall($action);
             if($api_response){
                 $message = $api_response['message'];
                 $result = $api_response['status'];

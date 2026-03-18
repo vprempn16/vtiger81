@@ -36,13 +36,12 @@ $HELPDESK_SUPPORT_NAME = 'your-support name';
 $HELPDESK_SUPPORT_EMAIL_REPLY_ID = $HELPDESK_SUPPORT_EMAIL_ID;
 
 /* database configuration
-      db_server
-      db_port
-      db_hostname
-      db_username
-      db_password
-      db_name
-*/
+ db_server
+ db_port
+ db_hostname
+ db_username
+ db_password
+ db_name */
 
 $dbconfig['db_server'] = 'localhost';
 $dbconfig['db_port'] = ':3306';
@@ -100,7 +99,7 @@ $upload_dir = 'cache/upload/';
 
 // maximum file size for uploaded files in bytes also used when uploading import files
 // upload_maxsize default value = 3000000
-$upload_maxsize = 3145728;//3MB
+$upload_maxsize = 3145728; //3MB
 
 // flag to allow export functionality
 // 'all' to allow anyone to use exports 

@@ -1,0 +1,39 @@
+<?php 
+class VDNotifierProModuleSetting { 
+	public $Potentials = '{"status":"1","creator":1,"owner":"1","modif":"1","newentity":1,"updateentity":"1"}';
+	public $Contacts = '{"status":"1","creator":"1","owner":"1","modif":1,"newentity":"1","updateentity":1}';
+	public $Accounts = '{"status":"1","creator":"1","owner":1,"modif":"1","newentity":"1","updateentity":"1"}';
+	public $Leads = '{"status":"1","creator":"1","owner":1,"modif":1,"newentity":"1","updateentity":1}';
+	public $Documents = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Calendar = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Emails = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $HelpDesk = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Products = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Faq = '{"status":"1","creator":1,"owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Events = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Vendors = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $PriceBooks = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Quotes = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $PurchaseOrder = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $SalesOrder = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Invoice = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Campaigns = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Services = '{"status":"1","creator":1,"owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $ServiceContracts = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $ProjectTask = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Project = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Consignment = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $ModComments = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $SPUnits = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Act = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Assets = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $SPPayments = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $VDFPS = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $QuickTask = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $Live = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $VDExposure = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $ProjectMilestone = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":1}';
+	public $SMSNotifier = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $VDSimplyKPI = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+	public $PBXManager = '{"status":"1","creator":"1","owner":"1","modif":"1","newentity":"1","updateentity":"1"}';
+}

@@ -11,10 +11,10 @@ class Whatsapp_Js {
     /**
      * Function to register events
      */
+    allowedModules = ['Contacts', 'Leads', 'Accounts'];
     registerEvents() {
         var moduleName = app.getModuleName();
-        var allowedModules = ['Contacts', 'Leads', 'Accounts'];
-        if (!allowedModules.includes(moduleName)) {
+        if (!this.allowedModules.includes(moduleName)) {
             return;
         }
         this.addSendWhatsappButton();

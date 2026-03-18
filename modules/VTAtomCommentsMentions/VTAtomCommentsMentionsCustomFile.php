@@ -3,11 +3,9 @@ class VTAtomCommentsMentionsCustom{
 
     function postEnable(){
         $validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
-        $licensekey_records = $validator->getRecordDetails();
-        $license_key = $licensekey_records['cmtmention_license_key'];
-        $license_key = Vtiger_Functions::fromProtectedText($license_key);
-        $is_validate = $validator->apiCall($license_key,'validate');
-        $is_active = $validator->apiCall($license_key,'is_active');
+	$validator->getInstance($request);
+        $is_validate = $validator->apiCall('validate');
+        $is_active = $validator->apiCall('is_active');
         if($is_validate['iskeyvalid'] && $is_active['iskeyactive']){
             $this->SettingsLink();
             $this->registerEventHandler();
