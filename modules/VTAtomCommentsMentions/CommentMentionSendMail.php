@@ -10,13 +10,20 @@ class CommentMentionSendMail extends VTEventHandler {
 		if($eventName == 'vtiger.entity.aftersave') {
 			// Entity has been saved, take next action
 			$moduleName = $data->getModuleName();
+			
+
 			if ($moduleName == 'ModComments') {
 				global $current_user,$adb,$site_URL;
 				$validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
+				
+				// Construct mock request for event trigger where $request is undefined
+				$request = new Vtiger_Request(array('module' => 'VTAtomCommentsMentions'));
 				$validator->getInstance($request);
 
 				$is_validate = $validator->apiCall('validate');
 				$is_active = $validator->apiCall('is_active');
+				
+
 				$licenseview_url = $validator->getLicenseViewUrl();
 				if(!$is_validate['iskeyvalid']){
 					return false;
@@ -25,9 +32,13 @@ class CommentMentionSendMail extends VTEventHandler {
 					return false;
 				}
 				$isMailSendPermission = $this->isMailSendPermission('comment_mentions');
+				
+
 				if($isMailSendPermission){
 					$mail = new PHPMailer(true);
 					$commentcontent	= $data->get('commentcontent');
+					
+
 					//preg_match('/@(\w+)/', $content, $matches);
 					//preg_replace('/@(\w+)/', $message, $matches);
 					$username = $matches[1];
@@ -46,6 +57,27 @@ class CommentMentionSendMail extends VTEventHandler {
 					$commentcontent = $commentcontent . "<br><br>" . $additional_content;
 					foreach($usernames as $key => $username){
 						$userdetails = $this->getUserDetailsByUsername($username);
+						
+						// VDNotifierPro Notification logic
+						$userId = isset($userdetails['id']) ? $userdetails['id'] : false;
+						
+
+						if (file_exists('modules/VDNotifierPro/models/Record.php') && vtlib_isModuleActive('VDNotifierPro') && $userId) {
+							require_once 'modules/VDNotifierPro/models/Record.php';
+							
+							$VDNotifier = new VDNotifierPro_Record_Model();
+							$VDNotifier->userid = $userId;
+							$VDNotifier->modulename = 'ModComments';
+							$VDNotifier->crmid = $data->getId(); 
+							$VDNotifier->modiuserid = $current_user->id; 
+							$VDNotifier->action = 'MENTION';
+							$VDNotifier->modifiedtime = date('Y-m-d H:i:s');
+							$VDNotifier->title = "Mentioned you in a comment";
+							$VDNotifier->link = "module=" . $relatedmodule . "&view=Detail&record=" . $related_to;
+							
+							$VDNotifier->save();
+						}
+
 						$toEmail = $userdetails['email'];
 						$isMailSendPermission = $this->isMailSendPermission('send_commentmail');
 						if($toEmail != '' && $isMailSendPermission){
@@ -93,7 +125,8 @@ class CommentMentionSendMail extends VTEventHandler {
 		global $current_user,$adb;
 		$email = '';
 		if($username != ''){
-			$usermailquery = $adb->pquery('SELECT email1,first_name,last_name FROM vtiger_users WHERE user_name=?',array($username));
+			$usermailquery = $adb->pquery('SELECT id, email1,first_name,last_name FROM vtiger_users WHERE user_name=?',array($username));
+			$return['id'] = $adb->query_result($usermailquery,0,'id');
 			$return['email'] = $adb->query_result($usermailquery,0,'email1');
 			$return['first_name'] =  $adb->query_result($usermailquery,0,'first_name');
 			$return['last_name'] = $adb->query_result($usermailquery,0,'last_name');

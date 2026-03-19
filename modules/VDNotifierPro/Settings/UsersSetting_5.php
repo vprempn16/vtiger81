@@ -1,4 +1,4 @@
 <?php 
-class VDNotifierProUsersSetting_7 { 
+class VDNotifierProUsersSetting_5 { 
 	public $Setting = '{"sound":"1","message":"1"}';
 }
