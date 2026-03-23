@@ -4,6 +4,8 @@ class ServiceCompetency_GetLineItemDetails_Action extends Vtiger_Action_Controll
         global $adb;
         $moduleName = $request->get('module');
         $recordId = $request->get('record');
+        $isDuplicate = $request->get('isDuplicate');
+
         $currentModel = Vtiger_Record_Model::getInstanceById($recordId);
         $conversionRate = $conversionRateForPurchaseCost = 1;
         if (!$recordId) {
@@ -18,7 +20,7 @@ class ServiceCompetency_GetLineItemDetails_Action extends Vtiger_Action_Controll
         $soMonth = date('m', strtotime($soDate));
         $soYear  = date('Y', strtotime($soDate));
 
-        $query = "SELECT lineitem_id,listprice,productid,sequence_no,consultantname,servicecompetencyid,consultant_startdate,consultant_enddate FROM vtiger_inventoryproductrel WHERE id = ?";
+        $query = "SELECT lineitem_id,listprice,productid,sequence_no,consultantname,servicecompetencyid,consultant_startdate,consultant_enddate,consultantrole FROM vtiger_inventoryproductrel WHERE id = ?";
         $result = $adb->pquery($query, [$recordId]);
         $lineItemDetails = [];
 
@@ -29,8 +31,14 @@ class ServiceCompetency_GetLineItemDetails_Action extends Vtiger_Action_Controll
             $consultantsAvailable = [];
             $consultantname = $row['consultantname'];
             $servicecompetencyid = $row['servicecompetencyid'];
+            $compId       = $row['servicecompetencyid'];
             $startdate = $row['consultant_startdate'];
             $enddate = $row['consultant_enddate']; 
+            $startdateObj = new DateTimeField($startdate);
+            $enddateObj = new DateTimeField($enddate);
+            $startdateDisplay =  $startdateObj->getDisplayDate();
+            $enddateDisplay = $enddateObj->getDisplayDate();
+            $consultantrole = $row['consultantrole'];
             $consultantName = '';
             if($consultantname != ''){
                 $consultantLabel = Vtiger_Functions::getUserRecordLabel($consultantname);
@@ -38,14 +46,36 @@ class ServiceCompetency_GetLineItemDetails_Action extends Vtiger_Action_Controll
             $module = getSalesEntityType($productid);
             $roleQue = $adb->pquery("SELECT * FROM vtiger_servicecompetency where consultantname =? AND  servicecompetencyid =?",array($consultantname,$servicecompetencyid));
             if($adb->num_rows($roleQue) > 0){
-                     $consultantrole = $adb->query_result($roleQue,0,'consultantrole');
+                    // $consultantrole = $adb->query_result($roleQue,0,'consultantrole');
                      $serviceid = $adb->query_result($roleQue,0,'servicename');
                      if($servicecompetencyid != ''){
                         $servicename = Vtiger_Functions::getCRMRecordLabel($serviceid);
                      }
             }
-            $ticketRes = $adb->pquery("SELECT COUNT(*) AS ticketscount FROM scid_rel WHERE rel_id = ? AND module =? ",array($id,'HelpDesk'));
-            $ticketsCount = $adb->query_result($ticketRes, 0, 'ticketscount');
+            $scQuery = $adb->pquery("SELECT sc.servicecontractsid FROM vtiger_servicecontracts sc INNER JOIN vtiger_crmentity e ON e.crmid = sc.servicecontractsid AND e.deleted = 0 WHERE sc.sc_related_to = ? AND sc.servicename = ?", [$recordId, $productid]);
+            $serviceContractId = ($adb->num_rows($scQuery) > 0) ? $adb->query_result($scQuery, 0, 'servicecontractsid') : 0;
+            
+            $contractsGrouped = $this->getContractsGrouped($productid,$recordId);
+
+             $key = $sequence_no;
+
+            $serviceContractId = 0;
+            if (!empty($contractsGrouped[$key])) {
+                // pop first in order → each line item receives next contract
+                $serviceContractId = $contractsGrouped[$key];
+            }
+            $ticketsCount = 0;
+            if ($serviceContractId > 0) {
+                $tRes = $adb->pquery("
+                    SELECT relcrmid AS ticketid FROM vtiger_crmentityrel WHERE crmid = ? AND module = 'ServiceContracts' AND relmodule = 'HelpDesk'
+                ", [$serviceContractId]);
+
+                $ticketsCount = (int)$adb->num_rows($tRes);
+            }
+            if($isDuplicate){
+                $serviceContractId = 0;
+                $ticketsCount = 0;
+            }
 
             if($module == 'Services'){
                 $scQuery = "SELECT sc.consultantname, u.first_name, u.last_name, u.id as userid,sc.consultantrole,sc.servicecompetencyid
@@ -69,13 +99,13 @@ class ServiceCompetency_GetLineItemDetails_Action extends Vtiger_Action_Controll
                     $ticketCount = (int)$adb->query_result($ticketRes, 0, 'ticket_count');
 
                     // 🔹 Skip consultants with > 22 tickets
-                    if($ticketCount <= 22) {
+                    //if($ticketCount <= 22) {
                         $consultantsAvailable[] = [
                             'id' => $consultantId,
                             'name' => $consultantName,
                             'servicecompetencyid' =>$servicecompetencyid,
                         ];
-                    }
+                    //}
                 }
             }
             $lineItemDetails[$sequence_no] = [
@@ -84,15 +114,19 @@ class ServiceCompetency_GetLineItemDetails_Action extends Vtiger_Action_Controll
                 'consultantname' => $row['consultantname'], 
                 'startdate' => $startdate,
                 'enddate' => $enddate,
+                'startdate_display'=>$startdateDisplay,
+                'enddate_display'=>$enddateDisplay,
                 'consultantName' =>  $consultantLabel, 
                 'consultants_list' => $consultantsAvailable,
                 'module'=>$module,
                 'consultantrole' => $consultantrole,
                 'servicecompetencyid' => $servicecompetencyid,
                 'servicename' => $servicename,
-                'ticketscount' => $ticketsCount
+                'ticketscount' => $ticketsCount,
+                'servicecontractsid' => $serviceContractId
                 ];
         }
+        
         $response = new Vtiger_Response();
         $response->setResult([
                 'success' => true,
@@ -100,4 +134,24 @@ class ServiceCompetency_GetLineItemDetails_Action extends Vtiger_Action_Controll
         ]);
         $response->emit();
     } 
+    public function getContractsGrouped($productid,$recordId){
+        global $adb;
+        $contractsGrouped = []; // key: "{$productid}_{$consultant}_{$competency}"
+
+        $contractQuery = "
+            SELECT * 
+                       FROM vtiger_servicecontracts sc
+                       INNER JOIN vtiger_crmentity e ON e.crmid = sc.servicecontractsid AND e.deleted = 0
+                       WHERE sc.sc_related_to = ?
+                       ORDER BY e.createdtime ASC
+                       ";
+        $contractRes = $adb->pquery($contractQuery, [$recordId]);
+        $i = 1;
+        while ($cRow = $adb->fetch_array($contractRes)) {
+            $key = $cRow['servicename'];
+            $contractsGrouped[$i] = $cRow['servicecontractsid'];
+            $i++;
+        }
+        return $contractsGrouped;
+    }
 }

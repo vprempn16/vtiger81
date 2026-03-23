@@ -31,6 +31,12 @@
         <div class="popupEntriesDiv relatedContents">
             <input type="hidden" value="{$ORDER_BY}" id="orderBy">
             <input type="hidden" value="{$SORT_ORDER}" id="sortOrder">
+            <input type="hidden" value="{$START_DATE}" id="sc_start_date">
+            <input type="hidden" value="{$END_DATE}" id="sc_end_date">
+             <input type="hidden" value="{$MANDAY}" id="manday">
+             <input type="hidden" value="{$SOURCE_RECORD}" id="srcRecord">
+             <input type="hidden" value="{$SERVICE_ID}" id="service_id">
+ <input type="hidden" value="{$ROLE}" id="role">
             {if $SOURCE_MODULE eq "Emails"}
                 {if $MODULE neq 'Documents'}
                     <input type="hidden" value="Vtiger_EmailsRelatedModule_Popup_Js" id="popUpClassName"/>

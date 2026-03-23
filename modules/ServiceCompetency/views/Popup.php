@@ -14,6 +14,7 @@ class ServiceCompetency_Popup_View extends Vtiger_Popup_View {
 
         $serviceId = $request->get('service_id'); // selected service in SO line item
         $salesOrderId = $request->get('src_record'); // current SO record ID
+        $isSearch = $request->get('isSearch');
 
         // Default popup header
         $viewer->assign('MODULE', $moduleName);
@@ -25,7 +26,11 @@ class ServiceCompetency_Popup_View extends Vtiger_Popup_View {
 
 
         $viewer->assign('RECORDS', $records);
-        $viewer->view('Popup.tpl', $moduleName);
+        if($isSearch){
+            $viewer->view('PopupContents.tpl', $moduleName);
+        }else{
+            $viewer->view('Popup.tpl', $moduleName);
+        }
     }
     public function initializeListViewContents(Vtiger_Request $request, Vtiger_Viewer $viewer) {
         global $adb;
@@ -46,6 +51,7 @@ class ServiceCompetency_Popup_View extends Vtiger_Popup_View {
         $startDate = $request->get('startDate');
         $manday = $request->get('manday');
         $endDate = $request->get('endDate');
+        $role = $request->get('role');
                 $moduleModel = Vtiger_Module_Model::getInstance($moduleName);
                 $searchParams=$request->get('search_params');
 
@@ -117,6 +123,7 @@ class ServiceCompetency_Popup_View extends Vtiger_Popup_View {
             $listViewModel->set('startdate', $startDate);
             $listViewModel->set('enddate', $endDate);
             $listViewModel->set('manday', $manday);
+            $listViewModel->set('role', $role);
         }
         $listViewModel->set('relationId',$relationId);
 
@@ -188,6 +195,12 @@ class ServiceCompetency_Popup_View extends Vtiger_Popup_View {
         $viewer->assign('SEARCH_DETAILS', $searchParams);
         $viewer->assign('MODULE_MODEL', $moduleModel);
         $viewer->assign('VIEW', $request->get('view'));
+
+        $viewer->assign('START_DATE', $startDate);
+        $viewer->assign('END_DATE', $endDate);
+        $viewer->assign('MANDAY', $manday);
+        $viewer->assign('SERVICE_ID',$serviceId);
+        $viewer->assign('ROLE',$role);
 
         if (PerformancePrefs::getBoolean('LISTVIEW_COMPUTE_PAGE_COUNT', false)) {
             if(!$this->listViewCount){

@@ -67,17 +67,6 @@ class ServiceCompetencyHandler{
             $requestData = $_POST;
             if($moduleName == "ServiceCompetency" && $currentUser->isAdminUser() ){
                     $recordId = $entityData->getId();
-                    /*$approvalstatus = $entityData->get('approvalstatus');
-                    $isapprovalStatusChanged = $entityDelta->hasChanged($moduleName, $recordId, 'approvalstatus');
-                    if($approvalstatus == 'Declined Approval' && $isapprovalStatusChanged){
-                        $oldRating = $entityDelta->getOldValue($moduleName,$entityData->getId(),'consultantrating');
-                        $scModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
-                        $scModel->set('id', $recordId);
-                        $scModel->set('mode', 'edit');
-                        $scModel->set('consultantrating', $oldRating);
-                        $scModel->save();
-                    }
-                    */
             }
             if (in_array($moduleName, ['SalesOrder'])) {
                 $totalProductsCount = $requestData['totalProductCount'];
@@ -106,6 +95,9 @@ class ServiceCompetencyHandler{
                     if( preg_match('/^end_date(\d+)$/', $key, $matches)){
                         $end_dateList[] = $value;
                     }
+                    if( preg_match('/^role(\d+)$/', $key, $matches)){
+                        $consultantroleList[] = $value;
+                    }
                 }
                 foreach ($productLists as $index => $productId) {
                     $inventoryData[] = [
@@ -114,6 +106,7 @@ class ServiceCompetencyHandler{
                         'servicecompetencyid'=> $compentencyidList[$index] ?? '',
                         'start_date' => $start_dateList[$index] ?? '',
                         'end_date' => $end_dateList[$index] ?? '',
+                        'consultantrole' => $consultantroleList[$index] ?? '',
                     ];
                 }
                 $query = "SELECT lineitem_id, productid, sequence_no FROM vtiger_inventoryproductrel WHERE id = ? ORDER BY sequence_no";
@@ -133,8 +126,9 @@ class ServiceCompetencyHandler{
                         $servicecompetencyid = $variant['servicecompetencyid'] ?? null;
                         $start_date = $variant['start_date'];
                         $end_date = $variant['end_date'];
-                        $updateQuery = "UPDATE vtiger_inventoryproductrel SET consultantname =? , servicecompetencyid =? , consultant_startdate =?, consultant_enddate =? WHERE id = ? AND lineitem_id = ?";
-                        $adb->pquery($updateQuery, [$consultantname,$servicecompetencyid,$start_date,$end_date,$recordid, $lineItemId]);
+                        $consultantrole = $variant['consultantrole'];
+                        $updateQuery = "UPDATE vtiger_inventoryproductrel SET consultantname =? , servicecompetencyid =? , consultant_startdate =?, consultant_enddate =? ,consultantrole=? WHERE id = ? AND lineitem_id = ?";
+                        $adb->pquery($updateQuery, [$consultantname,$servicecompetencyid,$start_date,$end_date,$consultantrole,$recordid, $lineItemId]);
                         $inventoryIndex++;
                     }
                 }
@@ -156,6 +150,25 @@ class ServiceCompetencyHandler{
                         $startdate    = $row['consultant_startdate'] ?? '';
                         $enddate      = $row['consultant_enddate'] ?? '';
                         $lineitem_id  = $row['lineitem_id'] ?? '';
+                        $contractsGrouped = $this->getContractsGrouped($productId,$recordid);
+                        $key = $sequence_no;
+
+                        $serviceContractId = 0;
+                        if (!empty($contractsGrouped[$key])) {
+                            // pop first in order → each line item receives next contract
+                            $serviceContractId = $contractsGrouped[$key];
+                        }
+                        $ticketsCount = 0;
+                        if ($serviceContractId > 0) {
+                            $tRes = $adb->pquery("
+                                    SELECT relcrmid AS ticketid
+                                    FROM vtiger_crmentityrel
+                                    WHERE crmid = ? AND module = 'ServiceContracts' AND relmodule = 'HelpDesk'
+                                    ", [$serviceContractId]);
+
+                            $ticketsCount = (int)$adb->num_rows($tRes);
+                        }
+
 
                         $productLists[]     = $productId;
                         $consultantList[]   = $consultant;
@@ -169,6 +182,8 @@ class ServiceCompetencyHandler{
                         $requestData["start_date{$idx}"]            = $startdate;
                         $requestData["end_date{$idx}"]              = $enddate;
                         $requestData["lineitem_id{$idx}"]              = $lineitem_id;
+                        $requestData["servicecontractsid{$idx}"]              = $serviceContractId;
+                        $requestData["ticketscount$idx}"]              = $ticketsCount;
                     }
                 }
 
@@ -193,13 +208,9 @@ class ServiceCompetencyHandler{
                         $servicecompetencyid = (!empty($requestData["servicecompetencyid{$i}"])) ? $requestData["servicecompetencyid{$i}"] : '';
                         $lineItemId = $requestData["lineitem_id{$i}"];
                         $org_name = Vtiger_Functions::getCRMRecordLabel($account_id);
-                        if($entityData->get('enable_recurring') == 'on' ){
-                           // $startdate = (!empty($requestData['start_period'])) ? $requestData['start_period'] : $entityData->get('start_period');
-                           // $duedate = (!empty($requestData['end_period'])) ? $requestData['end_period'] : $entityData->get('end_period');
-                        }else{ 
-                        }
                         $startdate = $requestData["start_date{$i}"];
                         $duedate = $requestData["end_date{$i}"];
+                         $existingSCId         = $requestData["servicecontractsid{$i}"];
                         
                         $sc_related_to = $requestData["record"];
                         
@@ -220,8 +231,14 @@ class ServiceCompetencyHandler{
                                 $interval = $start->diff($end);
                                 $planned_duration = $interval->days; // number of days between
                         }
-                        $checkServiceContractsql = $adb->pquery("SELECT * FROM `vtiger_servicecontracts` INNER JOIN vtiger_crmentity ON  vtiger_crmentity.crmid = vtiger_servicecontracts.servicecontractsid WHERE vtiger_crmentity.deleted = ? AND vtiger_servicecontracts.servicename = ? AND vtiger_servicecontracts.sc_related_to = ? AND vtiger_crmentity.smownerid = ?",array(0,$serviceid,$sc_related_to,$assigned_user_id));
-                         if($adb->num_rows($checkServiceContractsql) == 0){
+                        $ticketCountFromSO = $requestData["ticketcount{$i}"];
+                        
+                        if (!empty($existingSCId) && $existingSCId != '0') {
+                            // Already has Service Contract → Do NOT create new one
+                            $i++;
+                            continue;
+                        }
+
                             $recordModel = Vtiger_Record_Model::getCleanInstance("ServiceContracts");
                             $subject = $subject .' for '. $org_name;
                             $recordModel->set('mode','');
@@ -236,11 +253,8 @@ class ServiceCompetencyHandler{
                             $recordModel->set('servicename',$requestData["hdnProductId{$i}"]);
                             $recordModel->set('sc_related_to',$sc_related_to);
                             $recordModel->set('cf_1471',$role);
-                            $recordModel->set('lineItemId',$lineItemId);
                             $recordModel->save();
                             $serviceContractId = $recordModel->getId();
-                            $adb->pquery("INSERT INTO scid_rel(crmid, rel_id,module) VALUES (?,?,?)",array($serviceContractId,$lineItemId,'ServiceContracts'));
-                        }
                     }
                     $i++;
                 }
@@ -249,7 +263,7 @@ class ServiceCompetencyHandler{
                 $consultantname = $requestData['assigned_user_id'];
                 $servicename = $requestData['servicename'];
                 $ticketcount = $entityData->get('total_units');
-                $lineItemId = $entityData->get('lineItemId');
+                $lineItemId = 0;
                 $serviceContractRecordId = $entityData->getId();
                 $ticket_count = $this->createTicketsForServiceContract($serviceContractRecordId,$ticketcount,$lineItemId);
                 $serviceContractId = $entityData->getId();
@@ -257,15 +271,13 @@ class ServiceCompetencyHandler{
                 $recordModel->set('id', $serviceContractId);
                 $recordModel->set('mode', 'edit');
                 $recordModel->set('total_units', $ticket_count);
-                $recordModel->save();
+               // $recordModel->save();
             }
 
         }
         if($eventName == 'vtiger.entity.afterdelete'){
             if($moduleName  == 'HelpDesk' ||  $moduleName == 'ServiceContracts'){
                 $recordId = $entityData->getId();
-                $sql = "DELETE FROM scid_rel WHERE crmid = ?";
-                $adb->pquery($sql, [$recordId]);
             } 
         }
     }
@@ -307,6 +319,11 @@ class ServiceCompetencyHandler{
         $ticketCount = (int)$ticketcount;
         if ($ticketCount <= 0) return;
 
+        $que = $adb->pquery('SELECT * FROM sc_userworkingdays WHERE userid = ?',array($consultantId));
+        if ($adb->num_rows($que) == 0) return;
+    
+        $maxTicketsPerMonth = $adb->query_result($que, 0, 'working_days');
+        
         // Get all dates between start and end
         $dates = [];
         $period = new DatePeriod($start, new DateInterval('P1D'), (clone $end)->modify('+1 day'));
@@ -327,8 +344,7 @@ class ServiceCompetencyHandler{
         }
 
         // Determine free dates within range 
-        $finalDates = $this->calculateTicketDates($startDate, $dueDate, $usedDates, $ticketCount);
-
+        $finalDates = $this->calculateTicketDates($startDate, $dueDate, $usedDates, $ticketCount,$maxTicketsPerMonth);
 
         // Double check we have enough dates
         if (empty($finalDates)) return;
@@ -348,10 +364,10 @@ class ServiceCompetencyHandler{
                 $ticketModel->set('ticketstatus', 'Planned');
                 $ticketModel->set('ticketpriorities', 'Low');
                 $ticketModel->set('cf_792', $ticketDate);
+
                 $ticketModel->save();
                 $ticketId = $ticketModel->getId();
                 // Insert relation entry between ServiceContract and Ticket
-                $adb->pquery("INSERT INTO scid_rel(crmid, rel_id,module) VALUES (?,?,?)",array($ticketId,$lineItemId,'HelpDesk'));
                 $checkRel = $adb->pquery(
                         "SELECT 1 FROM vtiger_crmentityrel
                         WHERE crmid = ? AND relcrmid = ? AND module = ? AND relmodule = ?",
@@ -370,80 +386,132 @@ class ServiceCompetencyHandler{
         }
         return $ticket_counts;
     }
-    function calculateTicketDates($startDate, $endDate, $usedDates, $ticketCount){
-        $dates = [];
-        $start = new DateTime($startDate);
-        $end   = new DateTime($endDate);
 
-        $period = new DatePeriod($start, new DateInterval('P1D'), (clone $end)->modify('+1 day'));
-        foreach ($period as $d) {
-            $dates[] = $d->format('Y-m-d');
+
+    function calculateTicketDates($startDate, $endDate, $usedDates, $ticketCount, $maxTicketsPerMonth = null){
+    $dates = [];
+    $start = new DateTime($startDate);
+    $end   = new DateTime($endDate);
+    $period = new DatePeriod($start, new DateInterval('P1D'), (clone $end)->modify('+1 day'));
+    foreach ($period as $d) {
+        $dates[] = $d->format('Y-m-d');
+    }
+    
+    // Month-wise grouping of ALL dates in range
+    $monthWiseDates = [];
+    foreach ($dates as $d) {
+        $key = date('Y-m', strtotime($d));
+        $monthWiseDates[$key][] = $d;
+    }
+    
+    // Month-wise grouping of USED dates
+    $monthWiseUsed = [];
+    foreach ($usedDates as $d) {
+        $key = date('Y-m', strtotime($d));
+        if (!isset($monthWiseUsed[$key])) {
+            $monthWiseUsed[$key] = 0;
         }
-
-        // Available free dates
-        $freeDates = array_values(array_diff($dates, $usedDates));
-        if (empty($freeDates)) return [];
-
-        // Month-wise grouping
-        $monthWiseFree = [];
-        foreach ($freeDates as $d) {
-            $key = date('Y-m', strtotime($d));
-            $monthWiseFree[$key][] = $d;
+        $monthWiseUsed[$key]++;
+    }
+    
+    // Calculate available slots per month (considering per-month limit)
+    $monthWiseFree = [];
+    $monthAvailableSlots = [];
+    
+    foreach ($monthWiseDates as $month => $daysInMonth) {
+        $usedInMonth = isset($monthWiseUsed[$month]) ? $monthWiseUsed[$month] : 0;
+        
+        // If there's a per-month limit, calculate remaining slots
+        if ($maxTicketsPerMonth !== null) {
+            $remainingSlots = $maxTicketsPerMonth - $usedInMonth;
+            $monthAvailableSlots[$month] = max(0, $remainingSlots);
+        } else {
+            // No limit, all unused dates are available
+            $monthAvailableSlots[$month] = count($daysInMonth) - $usedInMonth;
         }
-        $months = array_keys($monthWiseFree);
-        $monthCount = count($months);
-
-        if ($monthCount == 0) return [];
-
-        // Step A — Base split
-        $baseTickets = floor($ticketCount / $monthCount);
-        $remaining = $ticketCount % $monthCount;
-
-        $monthTickets = [];
-        foreach ($months as $m) {
-            $monthTickets[$m] = $baseTickets;
+        
+        // Get actual free dates (not used)
+        $freeDatesInMonth = array_diff($daysInMonth, $usedDates);
+        $monthWiseFree[$month] = array_values($freeDatesInMonth);
+    }
+    
+    // Filter out months with no available slots
+    $months = [];
+    foreach ($monthAvailableSlots as $month => $slots) {
+        if ($slots > 0) {
+            $months[] = $month;
         }
+    }
+    
+    if (empty($months)) return [];
+    
+    $monthCount = count($months);
+    
+    // Step A — Base split
+    $baseTickets = floor($ticketCount / $monthCount);
+    $remaining = $ticketCount % $monthCount;
+    $monthTickets = [];
+    
+    foreach ($months as $m) {
+        $monthTickets[$m] = $baseTickets;
+    }
 
-        // Step B — Distribute remainders to earliest months
-        foreach ($months as $m) {
-            if ($remaining <= 0) break;
+    // Step B — Distribute remainders to months with most available capacity
+    $monthsByCapacity = $months;
+    usort($monthsByCapacity, function($a, $b) use ($monthAvailableSlots, $monthTickets) {
+        $capacityA = $monthAvailableSlots[$a] - $monthTickets[$a];
+        $capacityB = $monthAvailableSlots[$b] - $monthTickets[$b];
+        return $capacityB - $capacityA; // Descending
+    });
+    
+    foreach ($monthsByCapacity as $m) {
+        if ($remaining <= 0) break;
+        $availableSlots = $monthAvailableSlots[$m];
+        $currentlyAssigned = $monthTickets[$m];
+        
+        // Only add if month has capacity
+        if ($currentlyAssigned < $availableSlots) {
             $monthTickets[$m]++;
             $remaining--;
         }
-
-        // Step C — Assign based only on free days
-        $finalDates = [];
-        foreach ($months as $m) {
-            $need = $monthTickets[$m];
-            $available = $monthWiseFree[$m];
-
-            if (count($available) >= $need) {
-                $finalDates = array_merge($finalDates, array_slice($available, 0, $need));
-            } else {
-                $finalDates = array_merge($finalDates, $available);
-            }
+    }
+    
+    // Step C — Assign dates based on allocated tickets per month
+    $finalDates = [];
+    foreach ($months as $m) {
+        $need = $monthTickets[$m];
+        $available = $monthWiseFree[$m];
+        $canAssign = min($need, count($available), $monthAvailableSlots[$m]);
+        
+        if ($canAssign > 0) {
+            $finalDates = array_merge($finalDates, array_slice($available, 0, $canAssign));
         }
-
-        // Step D — Still short? Fill from earliest free dates
-        $selectedCount = count($finalDates);
-
-        if ($selectedCount < $ticketCount) {
-            $short = $ticketCount - $selectedCount;
-
-            foreach ($months as $m) {
-                foreach ($monthWiseFree[$m] as $d) {
-                    if (in_array($d, $finalDates)) continue;
-                    if ($short <= 0) break;
-
-                    $finalDates[] = $d;
-                    $short--;
-                }
-                if ($short <= 0) break;
-            }
-        }
-        return array_slice($finalDates, 0, $ticketCount);
     }
 
+    // Step D — Still short? Fill from any remaining available slots
+    $selectedCount = count($finalDates);
+    if ($selectedCount < $ticketCount) {
+        $short = $ticketCount - $selectedCount;
+        foreach ($months as $m) {
+            $alreadySelected = 0;
+            foreach ($monthWiseFree[$m] as $d) {
+                if (in_array($d, $finalDates)) {
+                    $alreadySelected++;
+                    continue;
+                }
+                if ($short <= 0) break;
+                if ($alreadySelected >= $monthAvailableSlots[$m]) break;
+                
+                $finalDates[] = $d;
+                $alreadySelected++;
+                $short--;
+            }
+            if ($short <= 0) break;
+        }
+    }
+    
+    return array_slice($finalDates, 0, $ticketCount);
+}
 
     function convertDateToMDY($date) {
         $formats = ['Y-m-d', 'd-m-Y', 'Y/m/d', 'd/m/Y', 'm/d/Y', 'm-d-Y'];
@@ -455,6 +523,26 @@ class ServiceCompetencyHandler{
         }
         // fallback if no match
         return date('m-d-Y', strtotime($date));
+    }
+     public function getContractsGrouped($productid,$recordId){
+        global $adb;
+        $contractsGrouped = []; // key: "{$productid}_{$consultant}_{$competency}"
+
+        $contractQuery = "
+            SELECT *
+                       FROM vtiger_servicecontracts sc
+                       INNER JOIN vtiger_crmentity e ON e.crmid = sc.servicecontractsid AND e.deleted = 0
+                       WHERE sc.sc_related_to = ?
+                       ORDER BY e.createdtime ASC
+                       ";
+        $contractRes = $adb->pquery($contractQuery, [$recordId]);
+        $i = 1;
+        while ($cRow = $adb->fetch_array($contractRes)) {
+            $key = $cRow['servicename'];
+            $contractsGrouped[$i] = $cRow['servicecontractsid'];
+            $i++;
+        }
+        return $contractsGrouped;
     }
 }
 ?>

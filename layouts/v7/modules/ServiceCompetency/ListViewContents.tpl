@@ -222,8 +222,8 @@
 									{/if}
 								</span>
 							</span>
-							{if $LISTVIEW_HEADER->isEditable() eq 'true' && $LISTVIEW_HEADER->isAjaxEditable() eq 'true' && $LISTVIEW_HEADER->get('name') neq 'consultantrole' }
-								<span class="hide edit  snja">
+							{if $LISTVIEW_HEADER->isEditable() eq 'true' && $LISTVIEW_HEADER->isAjaxEditable() eq 'true' && !in_array($LISTVIEW_HEADER->get('name'), ['scstatus','approvalstatus','consultantrole'])  }
+								<span class="hide edit  ">
 								</span>
 							{/if}
 						</td>

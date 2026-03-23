@@ -18,7 +18,6 @@ class Settings_ServiceCompetency_SaveWorkingDays_Action extends  Settings_Vtiger
         $result = false;
         $message = "Failed";
         $working_days = $request->get('working_days');
-
         foreach($working_days as $id => $days){
             $days = $days;
             $userid = $id;

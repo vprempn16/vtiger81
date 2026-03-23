@@ -2,7 +2,7 @@
 /*+***********************************************************************************
  * The contents of this file are subject to the vtiger CRM Public License Version 1.0
  * ("License"); You may not use this file except in compliance with the License
- * The Original Code is:  vtiger CRM Open Source
+/bin/bash: 0: command not found
  * The Initial Developer of the Original Code is vtiger.
  * Portions created by vtiger are Copyright (C) vtiger.
  * All Rights Reserved.
@@ -326,7 +326,8 @@ class ServiceCompetency_ListView_Model extends Vtiger_Base_Model {
         $startDate = $this->get('startdate');
 		$endDate = $this->get('enddate');
 		$manday = $this->get('manday');
-    	$listQuery = $this->getCustomQueryForPopup($serviceId,$salesOrderId,$startDate,$endDate,$manday);
+        $role = $this->get('role');
+    	$listQuery = $this->getCustomQueryForPopup($serviceId,$salesOrderId,$startDate,$endDate,$manday,$role);
     	$sourceModule = $this->get('src_module');
         if(!empty($sourceModule)) {
             if(method_exists($moduleModel, 'getQueryByModuleField')) {
@@ -339,7 +340,9 @@ class ServiceCompetency_ListView_Model extends Vtiger_Base_Model {
 
         $startIndex = $pagingModel->getStartIndex();
         $pageLimit = $pagingModel->getPageLimit();
+
         $paramArray = array();
+
 
         if(!empty($orderBy) && $orderByFieldModel) {
             if($orderBy == 'roleid' && $moduleName == 'Users'){
@@ -408,76 +411,308 @@ class ServiceCompetency_ListView_Model extends Vtiger_Base_Model {
         }
         return $price;
     }
-    public function getCustomQueryForPopup($serviceId,$salesOrderId,$startDate,$endDate,$manday){
+    public function generateQuestionMarks($array) {
+        if (!is_array($array) || empty($array)) {
+            return '';
+        }
+        return implode(',', array_fill(0, count($array), '?'));
+    }
+    public function getCustomQueryForPopup($serviceId, $salesOrderId, $startDate, $endDate, $manday, $role) {
         global $adb;
-        if (!empty($serviceId)) {
-            // Get SO start date to determine the month
-            // 🔹 Get Sales Order start date (to calculate month)
-            $soStartDate = $startDate;
-			$soEndDate = $endDate;
-			$somanday = $manday;
+        if (empty($serviceId)) return '';
+        $soStartDate = $startDate;
+        $soEndDate   = $endDate;
+        if (empty($soStartDate)) $soStartDate = date('Y-m-d');
+        if (empty($soEndDate))   $soEndDate   = date('Y-m-d');
+        $startDT = DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime($soStartDate)));
+        $endDT   = DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime($soEndDate)));
+        if (!$startDT || !$endDT) {
+            $monthsDiff = 1;
+        } else {
+            $startYM = intval($startDT->format('Y')) * 12 + intval($startDT->format('m'));
+            $endYM   = intval($endDT->format('Y')) * 12 + intval($endDT->format('m'));
+            $monthsDiff = max(1, ($endYM - $startYM + 1)); // inclusive months
+        }
+        $monthsDiff = (int)$monthsDiff;
+        $sampleDateResult = $adb->pquery("SELECT cf_792 FROM vtiger_ticketcf WHERE cf_792 IS NOT NULL AND cf_792 != '' LIMIT 1", []);
+        $sampleDate = ($adb->num_rows($sampleDateResult) > 0) ? $adb->query_result($sampleDateResult, 0, 'cf_792') : '';
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $sampleDate)) {
+            $format = '%Y-%m-%d';
+        } elseif (preg_match('/^\d{2}-\d{2}-\d{4}$/', $sampleDate)) {
+            $format = '%m-%d-%Y';
+        } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $sampleDate)) {
+            $format = '%m/%d/%Y';
+        } else {
+            $format = '%Y-%m-%d'; // fallback
+        }
+        $searchParams = $this->get('search_params');
+        $searchSql = $this->getSearchSql($searchParams); // assumes this returns a string prefixed with spaces/ANDs
 
-            $soMonth = date('m', strtotime($soStartDate));
-            $soYear = date('Y', strtotime($soStartDate));
-            $sampleDateResult = $adb->pquery("SELECT cf_792 FROM vtiger_ticketcf WHERE cf_792 IS NOT NULL AND cf_792 != '' LIMIT 1", []);
-            $sampleDate = $adb->query_result($sampleDateResult, 0, 'cf_792');
+        $roleByRate = array(1 =>'Not Started',2 => 'Learner',3 => 'Implementer',4 =>'Reviewer',5 => 'Project Manager');
+        $selectedRoleLevel = array_search($role, $roleByRate);
+        if (!$selectedRoleLevel) { $selectedRoleLevel = 1; }
 
-            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $sampleDate)) {
-                $format = '%Y-%m-%d';
-            } elseif (preg_match('/^\d{2}-\d{2}-\d{4}$/', $sampleDate)) {
-                $format = '%m-%d-%Y';
-            } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $sampleDate)) {
-                $format = '%m/%d/%Y';
-            } else {
-                $format = '%Y-%m-%d'; // fallback
+        $allowedRoles = [];
+        foreach ($roleByRate as $rate => $rName) {
+            if ($rate >= $selectedRoleLevel) {
+                            $allowedRoles[] = $rName;
             }
-         $query = "
-        SELECT 
-            sc.*,
-            u.first_name, u.last_name,
-            uwd.working_days,
+        }
+        $roleQMarks = $this->generateQuestionMarks($allowedRoles);
+        $monthlyWorkingDaysColumn = "IFNULL(uwd.working_days, 0)";
+        $totalWorkingDaysExpr = $this->buildWorkingDaysExpression($soStartDate, $soEndDate, $monthlyWorkingDaysColumn);
 
-            (
-                SELECT COUNT(*) 
+         $calcStart = date('Y-m-01', strtotime($soStartDate));
+        $calcEnd   = date('Y-m-t', strtotime($soEndDate));
+ /*       $ticketsJoin = "
+            LEFT JOIN (
+                SELECT e.smownerid AS owner_id, COUNT(*) AS tickets_in_range
                 FROM vtiger_troubletickets tt
                 INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
                 INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
-                WHERE e.smownerid = sc.consultantname
-                AND tcf.cf_792 BETWEEN ? AND ?
-            ) AS ticketDays,
+                WHERE STR_TO_DATE(tcf.cf_792, '{$format}') BETWEEN ? AND ?
+                GROUP BY e.smownerid
+            ) ticketStats ON ticketStats.owner_id = sc.consultantname
+        ";
 
-            (
-                uwd.working_days -
-                (
-                    SELECT COUNT(*) 
-                    FROM vtiger_troubletickets tt
-                    INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
-                    INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
-                    WHERE e.smownerid = sc.consultantname
-                    AND tcf.cf_792 BETWEEN ? AND ?
-                )
-            ) AS freeDays
+*/	
 
-        FROM vtiger_servicecompetency sc
-        INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecompetencyid AND ce.deleted = 0
-        INNER JOIN vtiger_users u ON u.id = sc.consultantname
-        LEFT JOIN sc_userworkingdays uwd ON uwd.userid = sc.consultantname
+// count no of days on which tickets created.
+$ticketsJoin = "
+    LEFT JOIN (
+        SELECT e.smownerid AS owner_id,
+               COUNT(DISTINCT DATE(STR_TO_DATE(tcf.cf_792, '{$format}'))) AS tickets_in_range
+        FROM vtiger_troubletickets tt
+        INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
+        INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
+        WHERE STR_TO_DATE(tcf.cf_792, '{$format}') BETWEEN ? AND ?
+        GROUP BY e.smownerid
+    ) ticketStats ON ticketStats.owner_id = sc.consultantname
+";
 
-        WHERE sc.servicename = ?
-        AND sc.scstatus = 'Active'
-        HAVING freeDays >= ?
-    ";
-
-         $params = [
-             $startDate, $endDate,   // for ticketDays subquery
-             $startDate, $endDate,   // for freeDays subquery
-             $serviceId,
-             $manday
-         ];
-         $query = $adb->convert2Sql($query, $params);
-         return $query;
-
+        $query = "
+            SELECT sc.*, u.first_name, u.last_name,
+                   {$monthlyWorkingDaysColumn} AS monthly_working_days,
+                   {$totalWorkingDaysExpr} AS total_working_days,
+                   IFNULL(ticketStats.tickets_in_range, 0) AS tickets_in_range,
+                   ({$totalWorkingDaysExpr} - IFNULL(ticketStats.tickets_in_range, 0)) AS freeDays
+            FROM vtiger_servicecompetency sc
+            INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecompetencyid AND ce.deleted = 0
+            INNER JOIN vtiger_users u ON u.id = sc.consultantname
+            LEFT JOIN sc_userworkingdays uwd ON uwd.userid = sc.consultantname
+            {$ticketsJoin}
+            WHERE sc.servicename = ?
+              AND sc.scstatus = 'Active'
+              AND sc.consultantrole IN ($roleQMarks)
+              {$searchSql}
+            HAVING freeDays >= ?
+        ";
+        $params = [
+            //$soStartDate, $soEndDate,
+            $calcStart, $calcEnd,
+            $serviceId,
+        ];
+        if (!empty($allowedRoles)) {
+            foreach ($allowedRoles as $r) $params[] = $r;
         }
+        $params[] = $manday;
+        $query = $adb->convert2Sql($query, $params);
+        return $query;
+    }
+     protected function buildWorkingDaysExpression($startDate, $endDate, $columnExpr = 'IFNULL(uwd.working_days, 0)') {
+        $startTs = strtotime($startDate);
+        $endTs = strtotime($endDate);
+        if ($startTs === false || $endTs === false) {
+            return $columnExpr;
+        }
+
+        if ($startTs > $endTs) {
+            $tmp = $startTs;
+            $startTs = $endTs;
+            $endTs = $tmp;
+        }
+
+        $parts = array();
+        $current = new DateTime(date('Y-m-d', $startTs));
+        $endDateObj = new DateTime(date('Y-m-d', $endTs));
+
+        while ($current <= $endDateObj) {
+            $monthStart = new DateTime($current->format('Y-m-01'));
+            $monthEnd = new DateTime($current->format('Y-m-t'));
+
+            $segmentStart = ($current > $monthStart) ? clone $current : clone $monthStart;
+            $segmentEnd = ($endDateObj < $monthEnd) ? clone $endDateObj : clone $monthEnd;
+
+            $overlapDays = (int)$segmentStart->diff($segmentEnd)->days + 1;
+            if ($overlapDays < 1) {
+                $current = $monthEnd->modify('+1 day');
+                continue;
+            }
+
+            $parts[] = "LEAST({$columnExpr}, {$overlapDays})";
+
+            $monthEnd->modify('+1 day');
+            $current = $monthEnd;
+        }
+        if (empty($parts)) {
+            return $columnExpr;
+        }
+
+        return '( ' . implode(' + ', $parts) . ' )';
+    }
+    public function getSearchSql($searchParams){
+        global $adb;
+        $searchSql = "";
+        if (!empty($searchParams) && isset($searchParams[0]['columns'])) {
+
+            foreach ($searchParams[0]['columns'] as $cond) {
+
+                if (empty($cond['value'])) continue;
+
+                $parts = explode(":", $cond['columnname']);
+                $fieldName = $parts[1];
+                $operator  = $cond['comparator'];
+                $value     = trim($cond['value']);
+
+                if ($fieldName == "consultantname") {
+                    $names = array_map('trim', explode(",", $value));
+
+                    $allIds = [];
+
+                    foreach ($names as $nameStr) {
+                        if ($nameStr === "") continue;
+
+                        $userRes = $adb->pquery(
+                                "SELECT id FROM vtiger_users 
+                                WHERE CONCAT(first_name, ' ', last_name) LIKE ?",
+                                ['%' . $adb->sql_escape_string($nameStr) . '%']
+                                );
+
+                        while ($u = $adb->fetch_array($userRes)) {
+                            $allIds[] = $u['id'];
+                        }
+                    }
+
+                    $allIds = array_unique($allIds);
+
+                    if (!empty($allIds)) {
+                        $searchSql .= " AND sc.consultantname IN (" . implode(",", $allIds) . ") ";
+                    } else {
+                        $searchSql .= " AND 1=0 ";
+                    }
+                    continue;
+                }
+
+                if ($fieldName == "servicename") {
+
+                    // Search services
+                    $svcRes = $adb->pquery(
+                            "SELECT serviceid FROM vtiger_service
+                            INNER JOIN vtiger_crmentity ce ON ce.crmid = vtiger_service.serviceid AND ce.deleted = 0
+                            WHERE vtiger_service.servicename LIKE ?",
+                            ['%' . $adb->sql_escape_string($value) . '%']
+                            );
+
+                    $ids = [];
+                    while ($row = $adb->fetch_array($svcRes)) {
+                        $ids[] = $row['serviceid'];
+                    }
+
+                    if (!empty($ids)) {
+                        $searchSql .= " AND sc.servicename IN (" . implode(",", $ids) . ") ";
+                    } else {
+                        $searchSql .= " AND 1=0 ";
+                    }
+
+                    continue;
+                }
+                    
+                if($fieldName == "consultantrating"){
+                     $searchSql .= " AND sc.consultantrating IN (" . $value . ") ";
+                     continue;
+                }
+                if($fieldName == "consultantrole"){
+
+                    $roles = array_map('trim', explode(",", $value));
+                    $quoted = [];
+                    foreach ($roles as $r) {
+                        if ($r === "") continue;
+                        $quoted[] = "'" . $adb->sql_escape_string($r) . "'";
+                    }
+                    if (!empty($quoted)) {
+                        $searchSql .= " AND sc.consultantrole IN (" . implode(",", $quoted) . ") ";
+                    } else {
+                        $searchSql .= " AND 1=0 ";
+                    }
+                    continue;
+                }
+
+                switch ($operator) {
+                    case "c": // contains
+                        $searchSql .= " AND sc.$fieldName LIKE '%" . $adb->sql_escape_string($value) . "%' ";
+                        break;
+
+                    case "e": // equals
+                        $searchSql .= " AND sc.$fieldName = '" . $adb->sql_escape_string($value) . "' ";
+                        break;
+
+                    case "s": // starts with
+                        $searchSql .= " AND sc.$fieldName LIKE '" . $adb->sql_escape_string($value) . "%' ";
+                        break;
+
+                    case "ew": // ends with
+                        $searchSql .= " AND sc.$fieldName LIKE '%" . $adb->sql_escape_string($value) . "' ";
+                        break;
+
+                    default:
+                        $searchSql .= " AND sc.$fieldName LIKE '%" . $adb->sql_escape_string($value) . "%' ";
+                }
+            }
+        }
+        return $searchSql;
+    }
+    public function getSearchSql_old($searchParams){   
+        global $adb;
+        $searchSql = "";
+
+        if (!empty($searchParams) && isset($searchParams[0]['columns'])) {
+
+            foreach ($searchParams[0]['columns'] as $cond) {
+
+                if (empty($cond['value'])) continue;
+
+                // Example format:
+                // vtiger_servicecompetency:consultantname:consultantname:ServiceCompetency_Consultant_Name:V
+                $parts = explode(":", $cond['columnname']);
+                $fieldName = $parts[1];  // The actual field name in module table
+
+                $operator = $cond['comparator'];
+                $value    = $cond['value'];
+
+                // Build condition
+                switch ($operator) {
+                    case "c": // contains
+                        $searchSql .= " AND sc.$fieldName LIKE '%" . $adb->sql_escape_string($value) . "%' ";
+                        break;
+
+                    case "e": // equals
+                        $searchSql .= " AND sc.$fieldName = '" . $adb->sql_escape_string($value) . "' ";
+                        break;
+
+                    case "s": // starts with
+                        $searchSql .= " AND sc.$fieldName LIKE '" . $adb->sql_escape_string($value) . "%' ";
+                        break;
+
+                    case "ew": // ends with
+                        $searchSql .= " AND sc.$fieldName LIKE '%" . $adb->sql_escape_string($value) . "' ";
+                        break;
+
+                    default:
+                        $searchSql .= " AND sc.$fieldName LIKE '%" . $adb->sql_escape_string($value) . "%' ";
+                }
+            }
+        }
+        return $searchSql;
     }
     public function handleStartDate($soStartDate){
             $dateObject = false;

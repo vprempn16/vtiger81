@@ -62,7 +62,11 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
         action: "GetLineItemDetails",
         record: recordId,
     };
-
+    var urlParams = new URLSearchParams(window.location.search);
+    var isDuplicate = urlParams.get('isDuplicate');
+    if (isDuplicate === 'true') {
+        params.isDuplicate = true;
+    }
     app.helper.showProgress();
     app.request.post({ data: params }).then(function(err, data) {
         app.helper.hideProgress();
@@ -89,59 +93,59 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                     // Hidden inputs
                     var html = thisInstance.getConsultantLineItemDetails(lineItemDetails[seqNo], seqNo);
                     consultantCell.append(html);
+                    consultantCell.find('.sc_role_select').select2({ placeholder: 'Select Consultant' });
+                    
                     var startdateEle = consultantCell.find('.sc_start_date');
                     var enddateEle = consultantCell.find('.sc_end_date');
-                    startdateEle.datepicker({format: 'yyyy-mm-dd',date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
-                    enddateEle.datepicker({format: 'yyyy-mm-dd',date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
+                    startdateEle.datepicker({format: 'yyyy-mm-dd',autoclose: true,date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
+                    enddateEle.datepicker({format: 'yyyy-mm-dd',autoclose: true,date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
                     var searchSpan = consultantCell.find(".relatedScPopup");
-                    // Finally, append the full field into your target cell
-                    //consultantCell.append(referenceWrapper);
-                    // var consultantrole = lineItemDetails[seqNo].consultantrole;
-                    // role label placeholder
-                    // var roleLabel = jQuery('<br><span class="consultant-role" style="margin-left:10px; font-weight:bold; color:#333;"></span>').text('Role: ' + consultantrole);
-                    // consultantCell.append(roleLabel);
-
-                    // 🔍 When popup button clicked
-                    //app.registerEventForDatePickerFields(consultantCell);
+                
                     thisInstance.onclickPopup(searchSpan,lineItemRow);
+
+                    thisInstance.registerDisableActionsForExistingSC();
                     }
                 });
             }
         });
     },
-	popupSearchPreFilter :function(){  
-		jQuery.ajaxPrefilter(function (options, originalOptions, jqXHR) {
-			// Check for multiple modules and both search modules
-			const supportedModules = ['Invoice', 'SalesOrder', 'Quotes', 'PurchaseOrder'];
-			const supportedSearchModules = ['Products', 'Services','ServiceCompetency' ];
+     popupSearchPreFilter :function(){
+                jQuery.ajaxPrefilter(function (options, originalOptions, jqXHR) {
+                        // Check for multiple modules and both search modules
+                        const supportedModules = ['Invoice', 'SalesOrder', 'Quotes', 'PurchaseOrder'];
+                        const supportedSearchModules = ['Products', 'Services','ServiceCompetency' ];
 
-			// Ensure options.data exists and is a string before processing
-			if (!options.data || typeof options.data !== 'string') {
-				return; // Skip processing if data is not available or not a string
-			}
+                        // Ensure options.data exists and is a string before processing
+                        if (!options.data || typeof options.data !== 'string') {
+                                return; // Skip processing if data is not available or not a string
+                        }
+                        const hasSupportedModule = supportedModules.some(module =>
+                                options.data.includes(`src_module=${module}`)
+                        );
+                        const hasSupportedSearchModule = supportedSearchModules.some(searchModule =>
+                                options.data.includes(`module=${searchModule}`)
+                        );
+                        if (hasSupportedModule && options.data.includes('view=PopupAjax')  && options.data.includes('src_module=SalesOrder') && options.data.includes('module=ServiceCompetency') && hasSupportedSearchModule) {
+                                const params = new URLSearchParams(options.data);
+                                var start_date = $('#popupModal').find('input#sc_start_date').val();
+                                var end_date  = $('#popupModal').find('input#sc_end_date').val();
+                                var manday = $('#popupModal').find('input#manday').val();
+                                var src_record = $('#popupModal').find('input#srcRecord').val(); 
+                                var serviceId = $('#popupModal').find('input#service_id').val();
+                                var role = $('#popupModal').find('input#role').val();
 
-			const hasSupportedModule = supportedModules.some(module =>
-				options.data.includes(`module=${module}`)
-			);
-
-			const hasSupportedSearchModule = supportedSearchModules.some(searchModule =>
-				options.data.includes(`search_module=${searchModule}`)
-			);
-			if (hasSupportedModule && options.data.includes('src_module=SalesOrder') && options.data.includes('module=ServiceCompetency') && hasSupportedSearchModule) {
-				const params = new URLSearchParams(options.data);
-				consolr.log(params,'prefilter');
-				//const searchValue = params.get('search_value') || '';
-					
-				//params.set('module', 'MirceamiCustomizations');
-				//params.set('action', 'GetProducts'); // You can name this as you like
-				//params.set('search_value', searchValue); // keep the search term
-
-				//params.set('custom_product_search', '1');
-
-				options.data = params.toString();
-			}
-		});
-	}, 	
+                                params.set('view', 'Popup'); // You can name this as you like
+                                params.set('startDate', start_date); // keep the search term
+                                params.set('endDate', end_date); 
+                                params.set('manday', manday);
+                                params.set('src_record', src_record);
+                                params.set('service_id', serviceId);
+                                params.set('role', role);
+                                params.set('isSearch',true);
+                                options.data = params.toString();
+                        }
+                });
+        },
     onclickPopup : function(searchSpan,lineItemRow){
         var thisInstance = this;
         searchSpan.on('click', function(e) {
@@ -151,13 +155,30 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 var salesOrderId = recordId;
                 var startDateField = lineItemRow.find('.sc_start_date');
                 var endDateField   = lineItemRow.find('.sc_end_date');
+                var role  = lineItemRow.find('.sc_role_select').find('option:selected').val();
                 var manday = lineItemRow.find('.qty').val();
                 var startDate = startDateField.val();  // yyyy-mm-dd
                 var endDate   = endDateField.val();    // yyyy-mm-dd
-
+                var today = new Date();
+                var soDueDate = jQuery('[name="duedate"]').val();
+                var dueDateObj = null;
+                               vtUtils.hideValidationMessage(lineItemRow.find('[name*="serviceDisplay"]'));
+                vtUtils.hideValidationMessage(startDateField);
+                vtUtils.hideValidationMessage(endDateField);
+                                vtUtils.hideValidationMessage(jQuery('[name="duedate"]'));
+                if (soDueDate) {
+                    var parts = soDueDate.split('/');  // ["28","02","2026"]
+                    var formatted = parts[2] + '-' + parts[1] + '-' + parts[0]; // yyyy-mm-dd
+                     dueDateObj = new Date(formatted);
+                }
+                if(soDueDate == '' || !soDueDate){
+                     app.helper.showErrorNotification({message: "Please select Due Date"});
+                    vtUtils.showValidationMessage(jQuery('[name="duedate"]'), app.vtranslate('JS_REQUIRED_FIELD'));
+                    return false;
+                }
                 if (!serviceId) {
                     app.helper.showErrorNotification({message: "Please select a Service first"});
-                    return;    
+                    return false;    
                 }
                 if (!startDate || startDate.trim() === '') {
                     app.helper.showErrorNotification({ message: "Please fill Start Date before selecting Consultant" });
@@ -169,7 +190,31 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                         vtUtils.showValidationMessage(endDateField, app.vtranslate('JS_REQUIRED_FIELD'));
                         return false;
                 }
-
+                if (startDate) {
+                    var startDateObj = new Date(startDate);
+                     if (startDateObj < today) {
+                        vtUtils.showValidationMessage(startDateField, "Start Date cannot be in the past");
+                         return false;
+                     }
+                     if (endDate) {
+                        var endDateObj = new Date(endDate);
+                        if (startDateObj > endDateObj) {
+                            vtUtils.showValidationMessage(endDateField, "End Date must be greater than Start Date");
+                            return false;
+                        }
+                    }
+                }
+                if (endDate && dueDateObj) {
+                        var endDateObj2 = new Date(endDate);
+                        if (endDateObj2 > dueDateObj) {
+                                vtUtils.showValidationMessage( endDateField,"End Date should not exceed Sales Order Due Date (" + soDueDate + ")");
+                                return false;
+                        }
+                }
+                if(role == ''){
+                    app.helper.showErrorNotification({message: "Please select a Role"});
+                    return;
+                }
                 if (!recordId || recordId === '' || recordId === '0') {
                     if (!startDate || startDate.trim() === '') {
                         app.helper.showErrorNotification({ message: "Please fill the Start Date before selecting Service Competency" });
@@ -177,7 +222,6 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                         return false;
                     }
                  }
-
                  // Open vtiger popup (standard)
                  var popupParams = {
                     module: 'ServiceCompetency',
@@ -188,6 +232,7 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                     startDate : startDate,
                     manday : manday,
                     endDate: endDate,
+                    role : role,
                 };
                     var popupInstance = Vtiger_Popup_Js.getInstance();
                     popupInstance.showPopup(popupParams,'post.PopupSelection.click');
@@ -410,6 +455,7 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 var formatted = parts[2] + '-' + parts[1] + '-' + parts[0]; // yyyy-mm-dd
                 dueDateObj = new Date(formatted);
             }
+            var today = new Date();
           jQuery('.lineItemRow').each(function() {
             var row = jQuery(this);
             var module = row.find('.itemNameDiv').find('.lineItemType').val()
@@ -423,6 +469,16 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
 
                 row.find('[name*="serviceDisplay"] ').css('border', '');
                 endDateField.css('border', '');
+               vtUtils.hideValidationMessage(row.find('[name*="serviceDisplay"]'));
+                vtUtils.hideValidationMessage(startDateField);
+                vtUtils.hideValidationMessage(endDateField);
+                vtUtils.hideValidationMessage(jQuery('[name="duedate"]'));
+                if(soDueDate == '' || !soDueDate){
+                    app.helper.showErrorNotification({message: "Please select Due Date"});
+                    vtUtils.showValidationMessage(jQuery('[name="duedate"]'), app.vtranslate('JS_REQUIRED_FIELD'));
+                    isValid = false;
+                }
+
                 if (!servicecompetency) {
                     isValid = false;
                     if (!servicecompetency)
@@ -438,9 +494,23 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                     isValid = false;
                     vtUtils.showValidationMessage(endDateField, "End Date is required");
                 }
-                if (endDateValue && dueDateObj) {
+                if (startDateValue) {
+                    var startDateObj = new Date(startDateValue);
+                     if (startDateObj < today) {
+                         isValid = false;
+                        vtUtils.showValidationMessage(startDateField, "Start Date cannot be in the past");
+                     }
+                     if (endDateValue) {
                         var endDateObj = new Date(endDateValue);
-                        if (endDateObj > dueDateObj) {
+                        if (startDateObj > endDateObj) {
+                            isValid = false;
+                            vtUtils.showValidationMessage(endDateField, "End Date must be greater than Start Date");
+                        }
+                    }
+                }
+                if (endDateValue && dueDateObj) {
+                        var endDateObj2 = new Date(endDateValue);
+                        if (endDateObj2 > dueDateObj) {
                                 isValid = false;
                                 vtUtils.showValidationMessage( endDateField,"End Date should not exceed Sales Order Due Date (" + soDueDate + ")");
                         }
@@ -507,87 +577,6 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
         app.helper.hidePopup();
     },
 
-     /*addColumnInPageLoad: function (){
-        var currentModule = app.getModuleName();
-        if (["SalesOrder"].indexOf(currentModule) === -1 || app.getViewName() != 'Edit') {
-            return;
-        }
-        var clonerow = jQuery('#lineItemTab tr.lineItemCloneCopy');
-        var cloneTd = clonerow.find('td').eq(1);
-        var cloneQuantityTd = clonerow.find('td').eq(2);
-        var headTr = jQuery('#lineItemTab tbody tr').eq(0);
-        var headTd = headTr.find('td').eq(2);
-        var consultantTd = clonerow.find(".consultant-details");
-        var headQuantityTd = headTr.find('td').eq(2);
-        var consultantHeader = headTr.find(".consultant-header");
-        if(consultantHeader.length === 0){
-            headTd.after('<td class="consultant-header" ><strong>Consultant Name </strong></td>');
-        }
-        if(consultantTd.length === 0) {
-            cloneQuantityTd.after('<td style="width:300px;" class="consultant-details"></td>');
-        }
-        var thisInstance = this;
-        var recordId = jQuery("input[name='record']").val();
-        if(recordId === ""){
-            var url = window.location.href;
-            var params = new URLSearchParams(url.split('?')[1]);
-            recordId = ['invoice_id', 'quote_id', 'salesorder_id', 'purchaseorder_id','record'].map(p => new URLSearchParams(window.location.search).get(p)).find(Boolean);
-        }
-
-        if(!recordId) {
-            return;
-        }
-        var params = {
-            module: "ServiceCompetency",
-            action: "GetLineItemDetails",
-            record: recordId,
-        }; 
-        app.helper.showProgress();
-        app.request.post({ data: params }).then(
-        function(err, data) {
-            app.helper.hideProgress();
-                if (err === null && data.success === true) {
-                    var lineItemDetails = JSON.parse(data.lineItemDetails);
-                    jQuery('#lineItemTab tr.lineItemRow').each(function (index, tr) {
-                        var seqNo = index + 1;
-                        var row = jQuery(tr);
-                        var lineItemRow = jQuery(this);
-                        var rowNum = lineItemRow.attr("data-row-num"); // Get row number (1,2,3...)
-                        if(rowNum != undefined && rowNum != 0){
-                        var quantityTd = lineItemRow.find('td').eq(2);
-                        if (lineItemRow.find(".atompricehike-td").length === 0) {
-                            quantityTd.after('<td class="consultant-details"></td>'); 
-                        }
-                        var consultantCell = row.find('.consultant-details');
-                        consultantCell.html(''); // Clear
-                        if (lineItemDetails[seqNo] && lineItemDetails[seqNo].consultants_list && lineItemDetails[seqNo].module == "Services" ){
-                            var consultantData = lineItemDetails[seqNo].consultants_list;
-                            var selectedVal = lineItemDetails[seqNo].consultantname || '';
-                            var  servicecompetencyid = lineItemDetails[seqNo].servicecompetencyid || '';
-                            var select = jQuery('<select id="consultantname" class="consultant-select form-control" name="consultantname'+ seqNo +'"><option value="">Select an option</option></select>');
-                            var inputField = jQuery('<input type="hidden" name="servicecompetencyid'+ seqNo +'" id="servicecompetencyid" value=0>');
-                               var roleLabel = $('<br><span class="consultant-role" style="margin-left:10px; font-weight:bold; color:#333;"></span>')
-                        .text('Role: ' + lineItemDetails[seqNo].consultantrole);
-                            consultantData.forEach(function (opt) {
-                                    var option = jQuery('<option>').val(opt.id).text(opt.name).attr('data-servicecompetencyid',opt.servicecompetencyid);
-                                    if (opt.id == selectedVal) {
-                                        option.attr('selected', 'selected');
-                                    }
-                                    select.append(option);
-                            });
-                            consultantCell.append(select);
-                            consultantCell.append(inputField);
-
-                            consultantCell.find("select#consultantname").after(roleLabel);
-
-                            select.select2({ width: '100%', placeholder: 'Select Consultant' });    
-                        }
-                        }
-                    });
-                }                
-        });
-     },
-     */
      showConsultantInDetail : function(){
         var thisInstance = this;
             var url = window.location.href;
@@ -617,7 +606,7 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 app.helper.hideProgress();
                 if (err === null && data.success === true) {
                     var lineItemDetails = JSON.parse(data.lineItemDetails);
-                                        var i = 0;
+                    var i = 0;
                     jQuery(".lineItemTableDiv table.lineItemsTable tbody tr").each(function() {
                             var lineItemRow = jQuery(this);
                             var rowNum = lineItemRow.attr("data-row-num");
@@ -636,14 +625,27 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                                 var productUrl = tdfieldValue.attr('href');
                                 var productParams = new URLSearchParams(productUrl.split('?')[1]);
                                 var productRecordId = productParams.get('record');
+                                var startDateFormatted = matchedData.startdate_display;
+                                var endDateFormatted   = matchedData.enddate_display;
                                 if (productRecordId == matchedData.productid) {
                                     var consultantName = matchedData.consultantName || '';
                                     var roleLabel = $('<br><br><span class="consultant-role" style=" font-weight:bold; color:#333;"></span>').text('Role: ' + matchedData.consultantrole);
+                                     var roleLabel = matchedData.consultantrole || '';
                                     if(consultantName != ''){
                                         var previewHtml = `<span class="consult-value">${consultantName}</span>`;
-                                        consultantnameTd.prepend(previewHtml);
-                                        consultantnameTd.find('.consult-value').after(roleLabel);
+                                        //consultantnameTd.prepend(previewHtml);
+                                       // consultantnameTd.find('.consult-value').after(roleLabel);
                                     }
+                                    var htmlContent = `
+                                        <div class="consult-detail">
+                                         <input type="hidden" class='ticketcount' name="ticketcount${rowNum}" value="${matchedData.ticketscount}">
+        <input type="hidden" class='servicecontractsid' name="servicecontractsid${rowNum}" value="${matchedData.servicecontractsid}">
+                                            <span><strong>Start Date :</strong> ${startDateFormatted}</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                            <span><strong>End Date :</strong> ${endDateFormatted}</span><br>
+                                            <span><strong>Role :</strong> ${roleLabel}</span><br>
+                                            <span><strong>Consultant :</strong> ${consultantName}</span>
+                                        </div>`;
+                                    consultantnameTd.html(htmlContent);
                                 }
                             }       
                         i++;
@@ -681,9 +683,10 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
         });
      },
     getConsultantLineItemDetails: function(details, seqNo) {
-
+            const roleSelect = this.getRoleSelectHtml(details.consultantrole, seqNo);
         var html = `
         <input type="hidden" class='ticketcount' name="ticketcount${seqNo}" value="${details.ticketscount}"> 
+        <input type="hidden" class='servicecontractsid' name="servicecontractsid${seqNo}" value="${details.servicecontractsid}">
         <table class="sc-table" style="width: 100%; margin-top: 5px; border-spacing: 0 10px;">
             <tr>
                 <td class="sc-label">Start Date :</td>
@@ -702,6 +705,12 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                         class="inputElement dateField sc_end_date"
                         data-date-format="yyyy-mm-dd"
                         value="${details.enddate || ''}">
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:4px 6px; font-weight:bold;">Role :</td>
+                <td colspan="3" style="padding:4px 6px;">
+                    ${roleSelect}
                 </td>
             </tr>
             <tr>
@@ -738,24 +747,117 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 </td>
             </tr>
 
-            <tr>
-                <td style="padding:4px 6px; font-weight:bold;">Role :</td>
-                <td colspan="3" style="padding:4px 6px;">
-                    <span class="consultant-role">${details.consultantrole || ''}</span>
-                </td>
-            </tr>
         </table>
     `;
-
         return html;
     },
+    getRoleSelectHtml: function(selectedValue, seqNo) {
+                       // Ideally load from picklist API or global config
+                       const roleOptions = [
+                           "Project Manager",
+                       "Reviewer",
+                       "Implementer",
+                       "Learner",
+                       "Not Started"
+                       ];
+
+                       let html = `<select class="sc_role_select" name="role${seqNo}">`;
+
+                       roleOptions.forEach(role => {
+                               const isSelected = (role === selectedValue) ? 'selected' : '';
+                               html += `<option value="${role}" ${isSelected}>${role}</option>`;
+                               });
+
+                       html += `</select>`;
+                       return html;
+                   },
+    registerDisableActionsForExistingSC: function () {
+             var thisInstance = this;
+        jQuery('.lineItemRow').each(function () {
+         var row = jQuery(this);
+            var scId = row.find('td.consultant-details').find('.servicecontractsid').val();
+            if (scId && scId !== "0") {
+
+                row.find('.deleteRow').hide();
+
+                row.find('.dragHandle').addClass('disabled-drag')
+                                       .css('opacity', '0.4')
+                                       .css('cursor', 'not-allowed');
+
+                row.attr('data-no-drag', 'true');
+                row.find('input.qty').attr("readonly", "readonly");
+                row.addClass('locked-row');
+
+            }
+        });
+        thisInstance.initializeSortable();
+        jQuery(document).off('click', '#addService').on('click', '#addService', function (e) {
+              thisInstance.registerDisableActionsForExistingSC();
+        });
+        jQuery(document).off('click', '.deleteRow').on('click', '.deleteRow', function (e) {
+               thisInstance.registerDisableActionsForExistingSC();
+        });
+    },
+    initializeSortable: function() {
+        if (jQuery('.lineitemTableContainer').length) {
+            var tbody = jQuery("#lineItemTab");
+        
+        if (typeof tbody.sortable !== 'undefined' && 
+            typeof tbody.sortable('instance') !== 'undefined') {
+            // Sortable is initialized, destroy it properly
+            tbody.sortable('destroy');
+        }
+        
+        tbody.sortable({
+            items: "tr.lineItemRow:not([data-no-drag='true'])", // Use attribute selector
+            cancel: "[data-no-drag='true'], .locked-row, input, textarea, button, select, a",
+            handle: ".dragHandle", 
+            axis: "y",
+            containment: "parent",
+            cursor: "move",
+            tolerance: "pointer",
+            placeholder: "sortable-placeholder",
+            helper: "clone",
+            opacity: 0.8,
+            start: function(e, ui) {
+                ui.placeholder.height(ui.item.height());
+                ui.placeholder.css('background-color', '#f0f0f0');
+                ui.placeholder.css('border', '1px dashed #ccc');
+            },
+            stop: function(e, ui) {
+            },
+            change: function(e, ui) {
+                // Optional: Handle while dragging
+            }
+        });
+        }
+    },
+    disableDragOnLockedRows_old : function () {
+        if (jQuery('.lineitemTableContainer').length) {
+            var tbody = jQuery("#lineItemTab tbody");
+            tbody.on("mousedown", ".lineItemRow", function (e) {  
+            var row = jQuery(this);
+            if (row.attr("data-no-drag") === "true") {
+                    e.stopImmediatePropagation(); // stops sortable from starting
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+        }
+    },
+
+
      registerEvents : function(){
+     var thisInstance = this;
         this.addColumnInPageLoad();
         this.showConsultantInDetail();
         this.changeSellingPrice();
         this.registerSaveClick();
-	this.popupSearchPreFilter();
+        this.popupSearchPreFilter();
+        this.registerDisableActionsForExistingSC();
      }
+    
 });
 jQuery(document).ready(function(e){
         var instance = new ServiceCompetencyHeader_Js();

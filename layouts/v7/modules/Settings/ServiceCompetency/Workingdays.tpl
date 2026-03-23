@@ -26,12 +26,9 @@
                                 <tr>
                                     <td class="{$WIDTHTYPE} fieldLabel"><input type="hidden" value="{$ID}" name="userid"><label>{vtranslate($NAME, $QUALIFIED_MODULE)}</label></td>
                                     <td class="{$WIDTHTYPE} fieldValue" style="width:70%;" >
-                                        <div class=" col-lg-3 col-md-3 col-sm-6">
-                                            <input type="text" name="{$ID}" {if $WORKING_DAYS[$ID]['working_days'] neq '' } value="{$WORKING_DAYS[$ID]['working_days'] }" {/if} class="inputElement working_days" name="from_email_field" data-rule-email="true" data-rule-illegal="true" />
+                                        <div class=" col-lg-6 col-md-6 col-sm-12">
+                                            <input type="text" name="{$ID}" {if $WORKING_DAYS[$ID] neq '' } value="{$WORKING_DAYS[$ID]}" {/if} class="inputElement working_days" name="from_email_field" data-rule-email="true" data-rule-illegal="true" />
                                         </div>
-					<div class=" col-lg-3 col-md-3 col-sm-6">
-                                            <input type="text" name="{$ID}" {if $WORKING_DAYS[$ID]['working_hours'] neq '' } value="{$WORKING_DAYS[$ID]['working_hours'] } " {/if} class="inputElement working_days" name="from_email_field" data-rule-email="true" data-rule-illegal="true" />
-                                        </div>	
                                     </td>
                                 </tr>
                                 {/foreach}

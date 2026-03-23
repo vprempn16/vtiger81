@@ -94,7 +94,8 @@ class Inventory_GetTaxes_Action extends Vtiger_Action_Controller {
                     $consultantsAvailable[$id][] = [
                         'id' => $consultantId,
                         'name' => $consultantName,
-                        'servicecompetencyid' => $servicecompetencyid
+                        'servicecompetencyid' => $servicecompetencyid,
+                        'consultantrole' => '',
                     ];
                 }
             } 
@@ -121,6 +122,9 @@ class Inventory_GetTaxes_Action extends Vtiger_Action_Controller {
 								'quantityInStock'		=> $quantitiesList[$id],
 								'imageSource'			=> $imageSourcesList[$id],
                                 'consultants_list'      => $consultantsAvailable[$id], //ISSUE266
+                                'consultantrole'        => '',
+                                'ticketscount'          => 0,
+                                'servicecontractsid'    => 0,
 					);
 
 			$info[] = array($id => $resultData);

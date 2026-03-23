@@ -43,10 +43,8 @@ class Settings_ServiceCompetency_Record_Model extends  Vtiger_Base_Model {
         if($num_rows > 0){
             for($i=0;$i<$num_rows;$i++){
                 $userid = $adb->query_result($result,$i,'userid');
-		$working_days = $adb->query_result($result,$i,'working_days');
-		$working_hours = $adb->query_result($result,$i,'working_hours');
-                $return[$userid]['working_days'] = $working_days;
-		$return[$userid]['working_hours'] = $working_hours;
+                $first_name = $adb->query_result($result,$i,'working_days');
+                $return[$userid] = $first_name;
             }
         }
         return $return;

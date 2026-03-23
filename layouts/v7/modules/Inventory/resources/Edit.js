@@ -1619,14 +1619,15 @@ Vtiger_Edit_Js("Inventory_Edit_Js", {
             parentRow.find('.consultant-details').empty();
             if (recordData.consultants_list && parentRow.find('.consultant-details').length){
             var consultantCell = parentRow.find('.consultant-details');
-                    var html = this.getConsultantHTML(rowNum, recordData.consultants_list[rowNum]);
+                    var serviceCom_Js = new ServiceCompetencyHeader_Js();
+                    var html = serviceCom_Js.getConsultantLineItemDetails(recordData,rowNum);
                     consultantCell.append(html);
+                    consultantCell.find('.sc_role_select').select2({ placeholder: 'Select Consultant' });
                     var startdateEle = consultantCell.find('.sc_start_date');
                     var enddateEle = consultantCell.find('.sc_end_date');
-                    startdateEle.datepicker({format: 'yyyy-mm-dd',date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
-                    enddateEle.datepicker({format: 'yyyy-mm-dd',date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
+                    startdateEle.datepicker({format: 'yyyy-mm-dd',autoclose: true,date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
+                    enddateEle.datepicker({format: 'yyyy-mm-dd',autoclose: true,date: '',calendars: 1,starts: 1,className: 'globalCalendar'});
                     var searchSpan = consultantCell.find('.relatedScPopup');
-                    var serviceCom_Js = new ServiceCompetencyHeader_Js();
                     serviceCom_Js.onclickPopup(searchSpan,parentRow);
 
             }  
@@ -1638,75 +1639,6 @@ Vtiger_Edit_Js("Inventory_Edit_Js", {
 
 		jQuery('.qty',parentRow).trigger('focusout');
 	},
-    getConsultantHTML: function(rowNum, details = {}) {
-
-    return `
-        <table class="sc-table" style="width: 100%; margin-top: 5px; border-spacing: 0 10px;">
-            <tr>
-                <td class="sc-label">Start Date :</td>
-                <td class="sc-field">
-                    <input type="text"
-                        class="dateField form-control sc_start_date"
-                        name="start_date${rowNum}"
-                        data-date-format="dd/mm/yyyy"
-                        value="${details.startdate || ''}">
-                </td>
-
-                <td class="sc-label">End Date :</td>
-                <td class="sc-field">
-                    <input type="text"
-                        class="dateField form-control sc_end_date"
-                        name="end_date${rowNum}"
-                        data-date-format="dd/mm/yyyy"
-                        value="${details.enddate || ''}">
-                </td>
-            </tr>
-
-            <tr>
-                <td class="sc-label">Consultant :</td>
-                <td  colspan="3" class="sc-field">
-
-                    <div class="referencefield-wrapper">
-                        <input type="hidden" name="popupReferenceModule" value="ServiceCompetency">
-
-                        <div class="input-group">
-                            <input type="hidden"
-                                name="servicecompetencyid${rowNum}"
-                                class="sourceField servicecompetencyid"
-                                value="${details.servicecompetencyid || ''}">
-
-                            <input type="hidden"
-                                name="consultantname${rowNum}"
-                                class="sourceField consultantname"
-                                value="${details.consultantname || ''}">
-
-                            <input type="text"
-                                id="serviceDisplay_${rowNum}"
-                                name="serviceDisplay${rowNum}"
-                                class="autoComplete inputElement serviceDisplay form-control"
-                                placeholder="Type to search Consultant"
-                                value="${details.consultantName || ''}">
-
-                            <a href="#" class="clearReferenceSelection ${details.servicecompetencyid ? '' : 'hide'}">×</a>
-
-                            <span class="input-group-addon relatedScPopup cursorPointer" title="Select Consultant">
-                                <i class="fa fa-search"></i>
-                            </span>
-                        </div>
-                    </div>
-
-                </td>
-            </tr>
-
-            <tr>
-                <td style="padding:4px 6px; font-weight:bold;">Role :</td>
-                <td colspan="3" style="padding:4px 6px;">
-                    <span class="consultant-role">${details.consultantrole || ''}</span>
-                </td>
-            </tr>
-        </table>
-    `;
-    },
     showLineItemPopup : function(callerParams) {
         var params = {
             'module' : this.getModuleName(),

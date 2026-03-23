@@ -171,6 +171,18 @@ class ServiceCompetencyCustom{
                 $field6->displaytype = 0;
                 $blockInstance->addField($field6);
             }
+            $field7 = Vtiger_Field::getInstance("consultantrole",$moduleInstance);
+            if(!$field7){
+                $field7 = new Vtiger_Field();
+                $field7->name = "consultantrole";
+                $field7->label = "Consultant Role";
+                $field7->column = "consultantrole";
+                $field7->table  ='vtiger_inventoryproductrel';
+                $field7->columntype = 'VARCHAR(250)';
+                $field7->uitype = 1;
+                $field7->displaytype = 0;
+                $blockInstance->addField($field7);
+            }
         }
     }
     function createCustomFields(){
@@ -266,11 +278,6 @@ class ServiceCompetencyCustom{
                 `working_days` int NOT NULL
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3";
 
-        $table_sql['scid_rel'] = "CREATE TABLE `scid_rel` (
-                `crmid` int NOT NULL,
-                `rel_id` int NOT NULL,
-                `module` varchar(100) DEFAULT NULL
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3"; 
 
         foreach($table_sql as $table_name => $sql){
             $table_exist_result = $adb->pquery("SHOW TABLES LIKE '$table_name'",array());
