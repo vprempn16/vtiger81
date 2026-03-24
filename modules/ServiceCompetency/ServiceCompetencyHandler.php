@@ -206,6 +206,7 @@ class ServiceCompetencyHandler{
                         $subject = (!empty($requestData['subject'])) ? $requestData['subject'] : $entityData->get('subject');
                         $account_id =  (!empty($requestData['account_id'])) ? $requestData['account_id'] : $entityData->get('account_id');
                         $servicecompetencyid = (!empty($requestData["servicecompetencyid{$i}"])) ? $requestData["servicecompetencyid{$i}"] : '';
+			$servicecategory = (!empty($servieModel->get('servicecategory'))) ? $servieModel->get('servicecategory') : '';
                         $lineItemId = $requestData["lineitem_id{$i}"];
                         $org_name = Vtiger_Functions::getCRMRecordLabel($account_id);
                         $startdate = $requestData["start_date{$i}"];
@@ -253,6 +254,8 @@ class ServiceCompetencyHandler{
                             $recordModel->set('servicename',$requestData["hdnProductId{$i}"]);
                             $recordModel->set('sc_related_to',$sc_related_to);
                             $recordModel->set('cf_1471',$role);
+			    $recordModel->set('tracking_unit','Days');
+			    $recordModel->set('contract_type',$servicecategory);
                             $recordModel->save();
                             $serviceContractId = $recordModel->getId();
                     }
@@ -285,7 +288,7 @@ class ServiceCompetencyHandler{
     private function createTicketsForServiceContract($serviceContractRecordId,$ticketcount,$lineItemId){
         global $adb;
         // Get Sales Order start and due date
-        $soRes = $adb->pquery("SELECT smownerid,servicename,start_date,due_date,sc_related_to,subject,total_units FROM vtiger_servicecontracts
+        $soRes = $adb->pquery("SELECT smownerid,servicename,start_date,due_date,sc_related_to,subject,total_units,servicename FROM vtiger_servicecontracts
                     INNER JOIN vtiger_crmentity on vtiger_crmentity.crmid = vtiger_servicecontracts.servicecontractsid
                     WHERE servicecontractsid = ? AND deleted = 0", [$serviceContractRecordId]);
 
@@ -293,7 +296,11 @@ class ServiceCompetencyHandler{
 
         $consultantId = $adb->query_result($soRes, 0, 'smownerid');
         $serviceId = $adb->query_result($soRes, 0, 'servicename');
-        $sc_related_to = $adb->query_result($soRes, 0, 'sc_related_to');
+	$sc_related_to = $adb->query_result($soRes, 0, 'sc_related_to');
+	$servicename = $adb->query_result($soRes,0,'servicename');
+
+	$scRes = $adb->pquery("SELECT servicecategory FROM vtiger_service WHERE serviceid = ?",[$servicename]);
+	$servicecategory =  $adb->query_result($scRes,0,'servicecategory');
 
         if (empty($consultantId) || empty($serviceId) || empty($sc_related_to)) return;
         $sc_rel_moduleame = Vtiger_Functions::getCRMRecordType($sc_related_to);
@@ -364,6 +371,11 @@ class ServiceCompetencyHandler{
                 $ticketModel->set('ticketstatus', 'Planned');
                 $ticketModel->set('ticketpriorities', 'Low');
                 $ticketModel->set('cf_792', $ticketDate);
+		$ticketModel->set('cf_765', $servicename);
+                $ticketModel->set('ticketcategories',$servicecategory);
+                $ticketModel->set('cf_962','10');
+                $ticketModel->set('cf_964','5');
+                $ticketModel->set('cf_960',$consultantId);
 
                 $ticketModel->save();
                 $ticketId = $ticketModel->getId();
