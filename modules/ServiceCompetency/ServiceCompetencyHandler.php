@@ -406,6 +406,7 @@ class ServiceCompetencyHandler{
     
     // Month-wise grouping of USED dates
     $monthWiseUsed = [];
+   // $usedDates = array_unique($usedDates); // Count distinct days with tickets
     foreach ($usedDates as $d) {
         $key = date('Y-m', strtotime($d));
         if (!isset($monthWiseUsed[$key])) {
