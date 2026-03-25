@@ -337,6 +337,12 @@ class ServiceCompetencyHandler{
         foreach ($period as $date) {
             $dates[] = $date->format('Y-m-d');
         }
+	
+
+        $user = Vtiger_DetailView_Model::getInstance('Users', $consultantId);
+        $recordModel = $user->getRecord();
+        $fullName = $recordModel->get('first_name').' '.$recordModel->get('last_name');
+
 
         // Find consultant's already used ticket dates
         $usedRes = $adb->pquery("
@@ -373,9 +379,9 @@ class ServiceCompetencyHandler{
                 $ticketModel->set('cf_792', $ticketDate);
 		$ticketModel->set('cf_765', $servicename);
                 $ticketModel->set('ticketcategories',$servicecategory);
-                $ticketModel->set('cf_962','10');
-                $ticketModel->set('cf_964','5');
-                $ticketModel->set('cf_960',$consultantId);
+                $ticketModel->set('cf_962', '10:00:00'); // 10 AM
+                $ticketModel->set('cf_964', '17:00:00'); // 5 PM
+		$ticketModel->set('cf_960',$fullName);
 
                 $ticketModel->save();
                 $ticketId = $ticketModel->getId();
