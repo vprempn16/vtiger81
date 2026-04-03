@@ -4,21 +4,6 @@ class Settings_VTAtomCommentsMentions_Edit_View extends Settings_Vtiger_Index_Vi
     public function process(Vtiger_Request $request) {
         $viewer = $this->getViewer($request);
         $qualifiedName = $request->getModule(false);
-        $validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
-	
-	$validator->getInstance($request);
-        $is_validate = $validator->apiCall('validate');
-        $is_active = $validator->apiCall('is_active');
-        $licenseview_url = $validator->getLicenseViewUrl();
-
-        if(!$is_validate['iskeyvalid']){
-            header("Location:".$licenseview_url);
-            exit();
-        }
-        if(!$is_active['iskeyactive']){
-            header("Location:".$licenseview_url."&keyactive=false");
-            exit();
-        }
         $recordId = $request->get('recordId');
         $ischeckboxvalues = $this->getCheckBoxValue();
         $viewer->assign('RECORD',$ischeckboxvalues);

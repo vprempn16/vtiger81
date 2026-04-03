@@ -9,3 +9,190 @@ FileAccessForInclusion -
 /var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
 /var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
 /var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:22
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:24
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:25
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:26
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:27
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:27
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:28
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:29
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:29
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 12:25:30
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>
+Traced on 2026-03-31 13:41:25
+FileAccessForInclusion - 
+/var/www/html/vtiger81/include/utils/CommonUtils.php::checkFileAccessForInclusion::388<br>
+/var/www/html/vtiger81/data/CRMEntity.php::checkFileAccessForInclusion::57<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::getInstance::214<br>
+/var/www/html/vtiger81/include/Webservices/VtigerCRMObjectMeta.php::vtws_getModuleInstance::42<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::__construct::31<br>
+/var/www/html/vtiger81/include/Webservices/VtigerModuleOperation.php::getMetaInstance::19<br>
+/var/www/html/vtiger81/include/Webservices/Utils.php::__construct::462<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::vtws_getModuleHandlerFromName::96<br>
+/var/www/html/vtiger81/include/QueryGenerator/QueryGenerator.php::getMeta::72<br>
+/var/www/html/vtiger81/include/QueryGenerator/EnhancedQueryGenerator.php::__construct::16<br>
+/var/www/html/vtiger81/modules/Vtiger/models/ListView.php::__construct::376<br>
+/var/www/html/vtiger81/modules/Vtiger/views/List.php::getInstance::56<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::preProcess::76<br>
+/var/www/html/vtiger81/includes/main/WebUI.php::triggerPreProcess::214<br>
+/var/www/html/vtiger81/index.php::process::26<br>

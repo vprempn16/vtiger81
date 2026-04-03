@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema>
+	<table name="vtiger_promotionalmaterial">
+		<column name="promotionalmaterialid" type="integer">
+			<key/>
+			<sequence>vtiger_promotionalmaterial_seq</sequence>
+		</column>
+		<column name="title" type="string" length="255">
+			<notnull/>
+		</column>
+		<column name="description" type="text"/>
+		<column name="status" type="string" length="25" default="Draft">
+			<notnull/>
+		</column>
+		<column name="publisheddate" type="datetime"/>
+		<index name="vtiger_promotionalmaterial_title_idx" unique="false">
+			<column>title</column>
+		</index>
+		<index name="vtiger_promotionalmaterial_status_idx" unique="false">
+			<column>status</column>
+		</index>
+	</table>
+	<table name="vtiger_promotionalmaterial_documents">
+		<column name="documentid" type="integer">
+			<key/>
+			<sequence>vtiger_promotionalmaterial_documents_seq</sequence>
+		</column>
+		<column name="promotionalmaterialid" type="integer">
+			<notnull/>
+			<fk table="vtiger_promotionalmaterial" column="promotionalmaterialid"/>
+		</column>
+		<column name="filename" type="string" length="255">
+			<notnull/>
+		</column>
+		<column name="filepath" type="string" length="500"/>
+		<column name="filetype" type="string" length="50"/>
+		<column name="filesize" type="integer"/>
+		<column name="createdtime" type="datetime"/>
+		<index name="vtiger_promotionalmaterial_documents_idx" unique="false">
+			<column>promotionalmaterialid</column>
+		</index>
+	</table>
+	<table name="vtiger_promotionalmaterialcf">
+		<column name="promotionalmaterialid" type="integer">
+			<key/>
+			<fk table="vtiger_promotionalmaterial" column="promotionalmaterialid"/>
+		</column>
+	</table>
+</schema>

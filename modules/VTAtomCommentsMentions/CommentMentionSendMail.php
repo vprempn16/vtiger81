@@ -14,23 +14,9 @@ class CommentMentionSendMail extends VTEventHandler {
 
 			if ($moduleName == 'ModComments') {
 				global $current_user,$adb,$site_URL;
-				$validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
 				
 				// Construct mock request for event trigger where $request is undefined
 				$request = new Vtiger_Request(array('module' => 'VTAtomCommentsMentions'));
-				$validator->getInstance($request);
-
-				$is_validate = $validator->apiCall('validate');
-				$is_active = $validator->apiCall('is_active');
-				
-
-				$licenseview_url = $validator->getLicenseViewUrl();
-				if(!$is_validate['iskeyvalid']){
-					return false;
-				}
-				if(!$is_active['iskeyactive']){
-					return false;
-				}
 				$isMailSendPermission = $this->isMailSendPermission('comment_mentions');
 				
 

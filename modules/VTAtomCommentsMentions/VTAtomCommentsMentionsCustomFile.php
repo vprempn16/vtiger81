@@ -2,48 +2,22 @@
 class VTAtomCommentsMentionsCustom{
 
     function postEnable(){
-        $validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
-	$validator->getInstance($request);
-        $is_validate = $validator->apiCall('validate');
-        $is_active = $validator->apiCall('is_active');
-        if($is_validate['iskeyvalid'] && $is_active['iskeyactive']){
             $this->SettingsLink();
             $this->registerEventHandler();
-        }
+            $this->createCustomTables();
     }
 
     function postDisable(){
         global $adb;
         $this->unregisterEventHandler();
         $this->removeSettingsLink();
-        $this->removeLicenseSettingsLink();
         $this->removeHeaderJsAndTypes();
     }
-	public function LicenseSettingsLink(){
-        global $adb;
-        $name = "VTAtom Comments Mention License Manager";
-        $description = "Configure License Manager";
-        $linkto = "index.php?parent=Settings&module=VTAtomCommentsMentions&view=LicenseManagerEdit";
-        $result = $adb->pquery("SELECT * FROM vtiger_settings_field WHERE name= ?",array($name));
-        $num_rows = $adb->num_rows($result);
-        if($num_rows == 0) {
-            $otherSettingsBlock = $adb->pquery('SELECT * FROM vtiger_settings_blocks WHERE label=?', array('LBL_OTHER_SETTINGS'));
-            $otherSettingsBlockCount = $adb->num_rows($otherSettingsBlock);
-
-            if ($otherSettingsBlockCount > 0) {
-                $blockid = $adb->query_result($otherSettingsBlock, 0, 'blockid');
-                $sequenceResult = $adb->pquery("SELECT max(sequence) as sequence FROM vtiger_settings_blocks WHERE blockid=?", array($blockid));
-                if ($adb->num_rows($sequenceResult)) {
-                    $sequence = $adb->query_result($sequenceResult, 0, 'sequence');
-                }
-            }
-            $fieldid = $adb->getUniqueID('vtiger_settings_field');
-
-            $adb->pquery("INSERT INTO vtiger_settings_field(fieldid, blockid, name, iconpath, description, linkto, sequence, active , pinned) VALUES(?,?,?,?,?,?,?,?,?)", array($fieldid, $blockid, $name, '',$description, $linkto, $sequence++, 0 , 1));
-
-            $adb->pquery("UPDATE vtiger_settings_field_seq SET id = ?",array($fieldid));
-        }
-	}
+    function postUpdate(){
+    	 $this->SettingsLink();
+            $this->registerEventHandler();
+            $this->createCustomTables();
+    }
     public function createCustomTables(){
         global $adb;
         $table_sql['atom_vtcommenton_rel'] = "CREATE TABLE `atom_vtcommenton_rel` (
@@ -141,17 +115,6 @@ class VTAtomCommentsMentionsCustom{
             return "success";
         }else{
             return "handler not found";
-        }
-    }
-    public function removeLicenseSettingsLink(){
-        global $adb;
-        $name = "Atom Pipeline License Manager";
-        $description = "Configure License Manager";
-        $linkto = "index.php?parent=Settings&module=AtomPipeline&view=LicenseManagerEdit";
-        $result = $adb->pquery("SELECT * FROM vtiger_settings_field WHERE name= ?",array($name));
-        $num_rows = $adb->num_rows($result);
-        if($num_rows == 1) {
-            $adb->pquery("DELETE FROM vtiger_settings_field WHERE name = ?", array($name));
         }
     }
 }

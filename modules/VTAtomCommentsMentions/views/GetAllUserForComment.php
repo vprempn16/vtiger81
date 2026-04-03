@@ -14,21 +14,6 @@ class VTAtomCommentsMentions_GetAllUserForComment_View extends Vtiger_Index_View
 				$users[$i] = array('username'=>$user_name,'label'=>$name);	
 			}
 		}
-		$validator = new Settings_VTAtomCommentsMentions_LicenseManager_Model();
-
-		$validator->getInstance($request);
-
-		$is_validate = $validator->apiCall('validate');
-		$is_active = $validator->apiCall('is_active');
-		$licenseview_url = $validator->getLicenseViewUrl();
-		if(!$is_validate['iskeyvalid']){
-			$users = '';
-			$success = false;
-		}
-		if(!$is_active['iskeyactive']){
-			$users = '';
-			$success = false;
-		}
 		$return = json_encode($users,$success);
 		$response->setResult($return);
 		$response->emit();
