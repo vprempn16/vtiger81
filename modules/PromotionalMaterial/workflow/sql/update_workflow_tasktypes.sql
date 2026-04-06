@@ -1,0 +1,3 @@
+-- OBSOLETE: Custom task types PMPartner* were replaced by Invoke custom function.
+-- Use delete_pm_workflow_tasktypes.sql to remove those rows from com_vtiger_workflow_tasktypes.
+-- Entity methods are registered automatically on PromotionalMaterial module enable (see PromotionalMaterial::registerWorkflowEntityMethods).

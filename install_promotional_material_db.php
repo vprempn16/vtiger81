@@ -95,6 +95,9 @@ class PromotionalMaterialInstaller
             // Step 11: Configure role permissions
             $this->log("[STEP 11] Configuring role permissions...");
             //$this->configureRolePermissions();
+
+	    $this->log("[STEP 12] Custom action creation...");
+	    $this->createCustomWorkflow();
             
             $this->log("✓ PromotionalMaterial module installed successfully!");
             $this->log("  Module ID: " . ($this->moduleInstance ? $this->moduleInstance->id : 'N/A'));
@@ -580,30 +583,17 @@ class PromotionalMaterialInstaller
     private function registerEventHandler()
     {
         try {
-            $eventName = 'vtiger.entity.aftersave.' . $this->moduleName;
+            $eventName = 'vtiger.entity.aftersave';
             $handlerClass = $this->moduleName . 'EventHandler';
-            
-            // Check if already registered
-            $checkResult = $this->adb->query(
-                "SELECT * FROM vtiger_eventhandlers WHERE event_name = '" . addslashes($eventName) . "' 
-                 AND handler_class = '" . addslashes($handlerClass) . "'"
+            $handlerPath = 'modules/' . $this->moduleName . '/' . $handlerClass . '.php';
+
+            $this->adb->pquery('DELETE FROM vtiger_eventhandlers WHERE handler_class = ?', array($handlerClass));
+
+            $this->adb->pquery(
+                'INSERT INTO vtiger_eventhandlers (event_name, handler_path, handler_class) VALUES (?, ?, ?)',
+                array($eventName, $handlerPath, $handlerClass)
             );
-            
-            if ($this->adb->num_rows($checkResult) == 0) {
-                // Register new event handler
-                $this->adb->pquery(
-                    "INSERT INTO vtiger_eventhandlers (event_name, handler_path, handler_class) 
-                     VALUES (?, ?, ?)",
-                    array(
-                        $eventName,
-                        'modules/' . $this->moduleName . '/' . $handlerClass . '.php',
-                        $handlerClass
-                    )
-                );
-                $this->log("  ✓ Registered event handler: $eventName");
-            } else {
-                $this->log("  ⚠ Event handler already registered: $eventName");
-            }
+            $this->log("  ✓ Registered event handler: $eventName → $handlerClass");
         } catch (Exception $e) {
             $this->log("  ✗ Error registering event handler: " . $e->getMessage());
             throw $e;
@@ -693,6 +683,57 @@ class PromotionalMaterialInstaller
             $this->log("  ✗ Error configuring role permissions: " . $e->getMessage());
             throw $e;
         }
+    }
+    public function createCustomWorkflow() {
+	    global $adb;
+	    include_once('modules/com_vtiger_workflow/VTTaskManager.inc');
+
+	    $defaultModules = '{"include":["PromotionalMaterials"],"exclude":[]}';
+
+	    $taskTypes = [
+
+		    // 🔔 1. Internal Notification Task
+		    [
+			    "name" => "PMPartnerNotificationTask",
+			    "label" => "Promotional Material - Notify Partners",
+			    "classname" => "PMPartnerNotificationTask",
+			    "classpath" => "modules/PromotionalMaterials/workflow/PMPartnerNotificationTask.php",
+			    "templatepath" => "modules/PromotionalMaterials/workflow/PMPartnerNotificationTask.tpl",
+		    ],
+
+		    // 📧 2. Email Task
+		    [
+			    "name" => "PMPartnerEmailTask",
+			    "label" => "Promotional Material - Send Email to Partners",
+			    "classname" => "PMPartnerEmailTask",
+			    "classpath" => "modules/PromotionalMaterials/workflow/PMPartnerEmailTask.php",
+			    "templatepath" => "modules/PromotionalMaterials/workflow/PMPartnerEmailTask.tpl",
+		    ]
+
+	    ];
+
+	    foreach ($taskTypes as $task) {
+
+		    $result = $adb->pquery(
+			    "SELECT 1 FROM com_vtiger_workflow_tasktypes WHERE tasktypename = ?",
+			    [$task['name']]
+		    );
+
+		    if ($adb->num_rows($result) == 0) {
+
+			    VTTaskType::registerTaskType([
+				    "name" => $task['name'],
+				    "label" => $task['label'],
+				    "classname" => $task['classname'],
+				    "classpath" => $task['classpath'],
+				    "templatepath" => $task['templatepath'],
+				    "modules" => $defaultModules,
+				    "sourcemodule" => 'PromotionalMaterials'
+			    ]);
+		    }
+		    echo"custom action added";
+			      $this->log("  ✓ custom action added");
+	    }
     }
 
     /**

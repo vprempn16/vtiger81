@@ -348,6 +348,19 @@ function isPermitted($module, $actionname, $record_id = '')
 			return $permission;
 
 		}
+
+		// PromotionalMaterial: Partner cannot create records (must run before empty-record allow)
+		if ($module == 'PromotionalMaterial' && $record_id == '') {
+			$pmPartnerRoleId = 'H6';
+			$pmRoleRes = $adb->pquery('SELECT roleid FROM vtiger_user2role WHERE userid = ?', array($current_user->id));
+			$pmUserRoleId = ($adb->num_rows($pmRoleRes) > 0) ? $adb->query_result($pmRoleRes, 0, 'roleid') : '';
+			if ($pmUserRoleId === $pmPartnerRoleId && $actionname == 'CreateView') {
+				$permission = 'no';
+				$log->debug("Exiting isPermitted method ... PromotionalMaterial partner cannot create");
+				return $permission;
+			}
+		}
+
 		//Checking and returning true if recorid is null
 		if ($record_id == '') {
 			$permission = "yes";
@@ -372,6 +385,36 @@ function isPermitted($module, $actionname, $record_id = '')
 						$log->debug("Exiting isPermitted method ... Project Creator Access Granted");
 						return 'yes';
 					}
+				}
+			}
+
+			// PromotionalMaterial: Partner — any Published record is readable; no edit/delete/save on entity
+			if ($module == 'PromotionalMaterial') {
+				$pmPartnerRoleId = 'H6';
+				$pmRoleRes = $adb->pquery('SELECT roleid FROM vtiger_user2role WHERE userid = ?', array($current_user->id));
+				$pmUserRoleId = ($adb->num_rows($pmRoleRes) > 0) ? $adb->query_result($pmRoleRes, 0, 'roleid') : '';
+				if ($pmUserRoleId === $pmPartnerRoleId) {
+					$pmRes = $adb->pquery(
+						'SELECT promotional_status FROM vtiger_promotionalmaterial WHERE promotionalmaterialid = ?',
+						array($record_id)
+					);
+					if ($adb->num_rows($pmRes) == 0) {
+						$permission = 'no';
+						return $permission;
+					}
+					$pmStatus = $adb->query_result($pmRes, 0, 'promotional_status');
+					if ($pmStatus !== 'Published') {
+						$permission = 'no';
+						return $permission;
+					}
+					if (in_array($actionname, array('EditView', 'Delete', 'Save'), true)) {
+						$permission = 'no';
+						$log->debug("Exiting isPermitted method ... PromotionalMaterial partner read-only");
+						return $permission;
+					}
+					$permission = 'yes';
+					$log->debug("Exiting isPermitted method ... PromotionalMaterial partner published access");
+					return $permission;
 				}
 			}
 		}

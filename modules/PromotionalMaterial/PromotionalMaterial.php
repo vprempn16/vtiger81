@@ -83,17 +83,40 @@ class PromotionalMaterial extends Vtiger_CRMEntity {
     // Refers to vtiger_field.fieldname values.
     var $mandatory_fields = array('title', 'assigned_user_id');
 
-    var $default_order_by = 'title';
-    var $default_sort_order = 'ASC';
-    function insertIntoAttachment($id,$module)
-    {
-	    global $log, $adb,$upload_badext;
-	    $log->debug("Entering into insertIntoAttachment($id,$module) method.");
-	    
-	    echo"<pre>";print_r([$id,$module]);die('@');
+	var $default_order_by = 'title';
+	var $default_sort_order = 'ASC';
 
-    }
+	/** Partner role id (vtiger_role.roleid) — keep in sync with profile/role setup */
+	public static function getPartnerRoleId() {
+		return 'H6';
+	}
 
+	public static function currentUserIsPartnerRole() {
+		global $current_user, $adb;
+		if (empty($current_user) || empty($current_user->id)) {
+			return false;
+		}
+		if (!empty($current_user->is_admin) && $current_user->is_admin == 'on') {
+			return false;
+		}
+		$res = $adb->pquery('SELECT roleid FROM vtiger_user2role WHERE userid = ?', array($current_user->id));
+		if ($adb->num_rows($res) < 1) {
+			return false;
+		}
+		return $adb->query_result($res, 0, 'roleid') === self::getPartnerRoleId();
+	}
+
+	/**
+	 * Partners skip private-sharing owner join; list/detail access is constrained by
+	 * promotional_status = Published (ListView model + isPermitted).
+	 */
+	function getNonAdminAccessControlQuery($module, $user, $scope = '') {
+		$res = $this->db->pquery('SELECT roleid FROM vtiger_user2role WHERE userid = ?', array($user->id));
+		if ($this->db->num_rows($res) > 0 && $this->db->query_result($res, 0, 'roleid') === self::getPartnerRoleId()) {
+			return ' ';
+		}
+		return parent::getNonAdminAccessControlQuery($module, $user, $scope);
+	}
 
 
 	/**
@@ -101,28 +124,19 @@ class PromotionalMaterial extends Vtiger_CRMEntity {
 	 */
 	function vtlib_handler($moduleName, $eventType) {
 		global $adb;
-		
+		include_once 'modules/PromotionalMaterial/PromotionalMaterialCustomFile.php';
+		$PromotionalMaterialCustomFile = new PromotionalMaterialCustomFile();
 		if ($eventType == 'module.postinstall') {
-			// Module installation
-			$this->createCustomTables();
+			$PromotionalMaterialCustomFile->postInstall();
 		} else if ($eventType == 'module.enabled') {
-			// Module enabled
-			$this->createCustomTables();
+			$PromotionalMaterialCustomFile->postEnable();
 		} else if ($eventType == 'module.disabled') {
+			$PromotionalMaterialCustomFile->postDisable();
 			// Module disabled
 		} else if ($eventType == 'module.preuninstall') {
+			$PromotionalMaterialCustomFile->postDisable();
 			// Module uninstallation
 		}
-	}
-
-	/**
-	 * Create custom tables for the module
-	 */
-	private function createCustomTables() {
-		global $adb;
-		
-		// This method is called during module installation
-		// Table creation is handled via schema.xml
 	}
 	 public function uploadAndSaveFile($id, $module, $file_details, $attachmentType = 'Attachment')
 	 {

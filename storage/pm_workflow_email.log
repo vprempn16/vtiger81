@@ -1,0 +1,24 @@
+[2026-04-06 07:38:46] === Starting pmwf_sendPartnerEmail ===
+[2026-04-06 07:38:46] Entity data validated successfully
+[2026-04-06 07:38:46] Record ID: 233, WS ID: 40x233
+[2026-04-06 07:38:46] Email template found. Template ID: 17
+[2026-04-06 07:38:46] Detail URL: http://localhost/vtiger81/index.php?module=PromotionalMaterial&view=Detail&record=233, Title: 'Test PM Record two'
+[2026-04-06 07:38:46] From: Prem Administrator <premnath@atomlines.com>
+[2026-04-06 07:38:46] Found 2 partner users: 6, 7
+[2026-04-06 07:38:46] Processing user ID: 6
+[2026-04-06 07:38:46] User 6 email: nathprem529@gmail.com
+[2026-04-06 07:38:46] Merged subject: 'PM - Published '
+[2026-04-06 07:38:46] Checking mail configuration...
+[2026-04-06 07:38:46] Mail server found: ssl://smtp.gmail.com:465, Port: 0, From: 
+[2026-04-06 07:38:46] Attempting to send email to nathprem529@gmail.com...
+[2026-04-06 07:38:51] SUCCESS: Email sent to nathprem529@gmail.com
+[2026-04-06 07:38:51] Processing user ID: 7
+[2026-04-06 07:38:51] User 7 email: premnath@atomlines.com
+[2026-04-06 07:38:51] Merged subject: 'PM - Published '
+[2026-04-06 07:38:51] Checking mail configuration...
+[2026-04-06 07:38:51] Mail server found: ssl://smtp.gmail.com:465, Port: 0, From: 
+[2026-04-06 07:38:51] Attempting to send email to premnath@atomlines.com...
+[2026-04-06 07:38:56] SUCCESS: Email sent to premnath@atomlines.com
+[2026-04-06 07:38:56] === Email sending completed ===
+[2026-04-06 07:38:56] Results: 2 sent, 0 failed
+[2026-04-06 07:38:56] ================================

@@ -48,19 +48,25 @@ class PromotionalMaterialHandler extends VTEntityHandler {
 	function update($elementType, $id, $body) {
 		global $adb, $current_user;
 
-		// Partners cannot update published materials
-		$result = $adb->pquery(
-			'SELECT status FROM vtiger_promotionalmaterial WHERE promotionalmaterialid = ?',
-			array($id)
+		$roleRes = $adb->pquery(
+			'SELECT roleid FROM vtiger_user2role WHERE userid = ?',
+			array($current_user->id)
 		);
+		$isPartner = ($adb->num_rows($roleRes) > 0 && $adb->query_result($roleRes, 0, 'roleid') === 'H6');
 
-		if ($adb->num_rows($result) > 0) {
-			$row = $adb->fetch_array($result);
-			if ($row['status'] === 'Published') {
-				throw new WebServiceException(
-					'UPDATE_DENIED',
-					'Partners cannot update published promotional materials'
-				);
+		if ($isPartner) {
+			$result = $adb->pquery(
+				'SELECT promotional_status FROM vtiger_promotionalmaterial WHERE promotionalmaterialid = ?',
+				array($id)
+			);
+			if ($adb->num_rows($result) > 0) {
+				$row = $adb->fetch_array($result);
+				if ($row['promotional_status'] === 'Published') {
+					throw new WebServiceException(
+						'UPDATE_DENIED',
+						'Partners cannot update published promotional materials'
+					);
+				}
 			}
 		}
 
@@ -90,24 +96,21 @@ class PromotionalMaterialHandler extends VTEntityHandler {
 			return;
 		}
 
-		// Partner role - check record status
 		$result = $adb->pquery(
-			'SELECT status FROM vtiger_promotionalmaterial WHERE promotionalmaterialid = ?',
+			'SELECT promotional_status FROM vtiger_promotionalmaterial WHERE promotionalmaterialid = ?',
 			array($recordId)
 		);
 
 		if ($adb->num_rows($result) > 0) {
 			$row = $adb->fetch_array($result);
 
-			// For read action, allow only published records
-			if ($action === 'read' && $row['status'] !== 'Published') {
+			if ($action === 'read' && $row['promotional_status'] !== 'Published') {
 				throw new WebServiceException(
 					'ACCESS_DENIED',
 					'Partners can only view published promotional materials'
 				);
 			}
 
-			// For other actions, deny
 			if ($action !== 'read') {
 				throw new WebServiceException(
 					'ACTION_DENIED',

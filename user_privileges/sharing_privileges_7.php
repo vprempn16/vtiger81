@@ -2,7 +2,7 @@
 
 
 //This is the sharing access privilege file
-$defaultOrgSharingPermission=array('2'=>3,'4'=>3,'6'=>3,'7'=>3,'9'=>3,'13'=>3,'16'=>3,'20'=>3,'21'=>3,'22'=>3,'23'=>3,'26'=>3,'8'=>3,'14'=>3,'30'=>3,'33'=>3,'34'=>3,'42'=>3,'43'=>3,'44'=>3,'45'=>3,'46'=>3,'47'=>3,'18'=>3,'10'=>3,'54'=>3,'55'=>3,'57'=>2,'58'=>3,);
+$defaultOrgSharingPermission=array('2'=>3,'4'=>3,'6'=>3,'7'=>3,'9'=>3,'13'=>3,'16'=>3,'20'=>3,'21'=>3,'22'=>3,'23'=>3,'26'=>3,'8'=>3,'14'=>3,'30'=>3,'33'=>3,'34'=>3,'42'=>3,'43'=>3,'44'=>3,'45'=>3,'46'=>3,'47'=>3,'18'=>3,'10'=>3,'54'=>3,'55'=>3,'57'=>2,'58'=>2,);
 
 $related_module_share=array(2=>array(6,),13=>array(6,),20=>array(6,2,),22=>array(6,2,20,),23=>array(6,22,),);
 
@@ -141,10 +141,6 @@ $ProjectTask_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 $Project_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $Project_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
-
-$TSWhatsapp_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
-
-$TSWhatsapp_share_write_permission=array('ROLE'=>array(),'GROUP'=>array());
 
 $BOM_share_read_permission=array('ROLE'=>array(),'GROUP'=>array());
 

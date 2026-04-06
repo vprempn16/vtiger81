@@ -236,3 +236,50 @@
 [2026-03-31 13:41:00]   Tab ID: 58
 [2026-03-31 13:41:00] === Installation Complete ===
 
+[2026-04-04 06:17:41] === Starting PromotionalMaterial Module Installation ===
+[2026-04-04 06:17:41] [STEP 1] Creating module...
+[2026-04-04 06:17:41]   ⚠ Module already exists: PromotionalMaterial (ID: 58)
+[2026-04-04 06:17:41] [STEP 2] Creating module block...
+[2026-04-04 06:17:41]   ⚠ Block already exists: LBL_PROMOTIONAL_MATERIAL_INFORMATION
+[2026-04-04 06:17:41] [STEP 2.5] Registering module in Tools app...
+[2026-04-04 06:17:41]   ⚠ Module already registered in Tools app
+[2026-04-04 06:17:41] [STEP 2.6] Configuring module settings...
+[2026-04-04 06:17:41]   ✓ Entity identifier set to 'title'
+[2026-04-04 06:17:44]   ✓ Default sharing rules configured
+[2026-04-04 06:17:44]   ✓ Module settings saved
+[2026-04-04 06:17:44] [STEP 4] Initializing database tables...
+[2026-04-04 06:17:44]   ✓ Database tables initialized successfully
+[2026-04-04 06:17:44] [STEP 3] Creating module fields...
+[2026-04-04 06:17:44]   ⚠ Field already exists: title
+[2026-04-04 06:17:44]   ⚠ Field already exists: description
+[2026-04-04 06:17:44]   ⚠ Field already exists: promotional_status
+[2026-04-04 06:17:44]   ⚠ Field already exists: publisheddate
+[2026-04-04 06:17:44]   ⚠ Field already exists: promotional_document
+[2026-04-04 06:17:44]   ⚠ Field already exists: assigned_user_id
+[2026-04-04 06:17:44]   ⚠ Field already exists: createdtime
+[2026-04-04 06:17:44]   ⚠ Field already exists: modifiedtime
+[2026-04-04 06:17:44]   ⚠ Field already exists: source
+[2026-04-04 06:17:44]   ⚠ Field already exists: starred
+[2026-04-04 06:17:44]   ⚠ Field already exists: tags
+[2026-04-04 06:17:44] [STEP 5] Creating database tables...
+[2026-04-04 06:17:44]   ✓ Table verified/created: vtiger_promotionalmaterial
+[2026-04-04 06:17:44]   ✓ Table verified/created: vtiger_promotionalmaterial_documents
+[2026-04-04 06:17:44]   ✓ Table verified/created: vtiger_promotionalmaterialcf
+[2026-04-04 06:17:44] [STEP 6] Adding filters...
+[2026-04-04 06:17:44]   ✓ Filter 'All' created with fields (title, status, publisheddate)
+[2026-04-04 06:17:44] [STEP 7] Registering in vtiger_entityname...
+[2026-04-04 06:17:44]   ⚠ Already registered in vtiger_entityname
+[2026-04-04 06:17:44] [STEP 8] Registering in vtiger_ws_entity...
+[2026-04-04 06:17:44]   ⚠ Already registered in vtiger_ws_entity
+[2026-04-04 06:17:44] [STEP 9] Registering event handler...
+[2026-04-04 06:17:44]   ✓ Registered event handler: vtiger.entity.aftersave → PromotionalMaterialEventHandler
+[2026-04-04 06:17:44] [STEP 10] Configuring picklist values...
+[2026-04-04 06:17:44] [STEP 11] Configuring role permissions...
+[2026-04-04 06:17:44] [STEP 12] Custom action creation...
+[2026-04-04 06:17:44]   ✓ custom action added
+[2026-04-04 06:17:44]   ✓ custom action added
+[2026-04-04 06:17:44] ✓ PromotionalMaterial module installed successfully!
+[2026-04-04 06:17:44]   Module ID: 58
+[2026-04-04 06:17:44]   Tab ID: 58
+[2026-04-04 06:17:44] === Installation Complete ===
+

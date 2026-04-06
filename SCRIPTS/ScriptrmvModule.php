@@ -10,14 +10,31 @@ $Vtiger_Utils_Log = true;
 class ScriptrmvModule{
 
         function __construct(){
-                $this->rmvModule();
+         //       $this->rmvModule();
+		$this->rmvField();
         }
         function rmvModule(){
                 $module = Vtiger_Module::getInstance('TSWhatsapp');
                 echo"<pre>";print_r($module);echo"</pre>";
                 if ($module) $module->delete(); echo "Module Deleted.";
         }
-
+	function rmvField(){
+		$fields = array('publisheddate');
+		$moduleInstance = new Vtiger_Module();
+		$modules =   ["PromotionalMaterial"];
+		foreach($modules as $module){
+			$moduleInstance = Vtiger_Module::getInstance ($module );
+			foreach($fields as $field){
+				$fieldInstance = Vtiger_Field::getInstance ( $field, $moduleInstance );
+				if ($fieldInstance) {
+					$fieldInstance->delete(); echo "Deleted field.";
+					echo $field."Deleted Done...";
+				} else {
+					echo "Field Not found. <br>";
+				}
+			}
+		}
+	}
 }
 $customAction =  new ScriptrmvModule();
 ?>

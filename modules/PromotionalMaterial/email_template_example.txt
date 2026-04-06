@@ -1,0 +1,24 @@
+Subject: New Promotional Material Available: ###PM_RECORD_TITLE###
+
+Dear Partner,
+
+We're excited to announce that new promotional material has been published and is now available for your use.
+
+Material Details:
+Title: ###PM_RECORD_TITLE###
+Published Date: ###PM_PUBLISHED_DATE###
+
+You can view and download this promotional material by clicking the link below:
+###PM_DETAIL_URL###
+
+This material has been created to support your marketing efforts and help you promote our products/services more effectively. Please feel free to use the provided assets in your marketing campaigns.
+
+If you have any questions or need additional support, please don't hesitate to contact our marketing team.
+
+Best regards,
+[Your Company Name]
+Marketing Team
+
+---
+This is an automated notification. Please do not reply to this email.
+For support, contact marketing@yourcompany.com
