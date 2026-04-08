@@ -1,0 +1,6 @@
+// Add this at the beginning of pmwf_notifyPartnerUsers function
+$logFile = 'storage/pm_workflow_debug.log';
+file_put_contents($logFile, date('Y-m-d H:i:s') . " - pmwf_notifyPartnerUsers called\n", FILE_APPEND);
+
+// Add this at the beginning of pmwf_sendPartnerEmail function  
+file_put_contents($logFile, date('Y-m-d H:i:s') . " - pmwf_sendPartnerEmail called\n", FILE_APPEND);

@@ -477,45 +477,140 @@ class ServiceCompetency_ListView_Model extends Vtiger_Base_Model {
 
 */	
 
-// count no of days on which tickets created.
-$ticketsJoin = "
-    LEFT JOIN (
-        SELECT e.smownerid AS owner_id,
-               COUNT(DISTINCT DATE(STR_TO_DATE(tcf.cf_792, '{$format}'))) AS tickets_in_range
-        FROM vtiger_troubletickets tt
-        INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
-        INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
-        WHERE STR_TO_DATE(tcf.cf_792, '{$format}') BETWEEN ? AND ?
-        GROUP BY e.smownerid
-    ) ticketStats ON ticketStats.owner_id = sc.consultantname
-";
+// Calculate month-wise availability: check full month capacity first
+$startMonth = date('Y-m', strtotime($soStartDate));
+$endMonth = date('Y-m', strtotime($soEndDate));
+
+// Check if start and end dates are in same month
+$isSameMonth = ($startMonth === $endMonth);
+
+if ($isSameMonth) {
+    // Same month: only need start month calculation
+    $startMonthFullEnd = date('Y-m-t', strtotime($soStartDate));
+    $startMonthTicketsJoin = "
+        LEFT JOIN (
+            SELECT e.smownerid AS owner_id,
+                   COUNT(DISTINCT DATE(STR_TO_DATE(tcf.cf_792, '{$format}'))) AS start_month_tickets
+            FROM vtiger_troubletickets tt
+            INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
+            INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
+            WHERE STR_TO_DATE(tcf.cf_792, '{$format}') BETWEEN ? AND ?
+            GROUP BY e.smownerid
+        ) startMonthStats ON startMonthStats.owner_id = sc.consultantname
+    ";
+    
+    // For same month, create a dummy remainingMonthStats that returns 0
+    $remainingMonthTicketsJoin = "
+        LEFT JOIN (
+            SELECT u.id AS owner_id, 0 AS remaining_month_tickets
+            FROM vtiger_users u
+            WHERE 1=0
+        ) remainingMonthStats ON remainingMonthStats.owner_id = sc.consultantname
+    ";
+    $remainingMonthWorkingDays = "0"; // No remaining months
+    
+    // Build working days expressions
+    $startMonthFullWorkingDays = $this->buildWorkingDaysExpression(
+        date('Y-m-01', strtotime($soStartDate)), 
+        $startMonthFullEnd, 
+        $monthlyWorkingDaysColumn
+    );
+    $startMonthPartialWorkingDays = $this->buildWorkingDaysExpression($soStartDate, $soEndDate, $monthlyWorkingDaysColumn);
+    
+} else {
+    // Different months: use original logic
+    $startMonthFullEnd = date('Y-m-t', strtotime($soStartDate));
+    $startMonthTicketsJoin = "
+        LEFT JOIN (
+            SELECT e.smownerid AS owner_id,
+                   COUNT(DISTINCT DATE(STR_TO_DATE(tcf.cf_792, '{$format}'))) AS start_month_tickets
+            FROM vtiger_troubletickets tt
+            INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
+            INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
+            WHERE STR_TO_DATE(tcf.cf_792, '{$format}') BETWEEN ? AND ?
+            GROUP BY e.smownerid
+        ) startMonthStats ON startMonthStats.owner_id = sc.consultantname
+    ";
+
+    $remainingMonthStart = date('Y-m-01', strtotime($startMonth . '+1 month'));
+    $remainingMonthTicketsJoin = "
+        LEFT JOIN (
+            SELECT u.id AS owner_id, IFNULL(tickets.ticket_count, 0) AS remaining_month_tickets
+            FROM vtiger_users u
+            LEFT JOIN (
+                SELECT e.smownerid, COUNT(DISTINCT DATE(STR_TO_DATE(tcf.cf_792, '{$format}'))) AS ticket_count
+                FROM vtiger_troubletickets tt
+                INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
+                INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
+                WHERE STR_TO_DATE(tcf.cf_792, '{$format}') BETWEEN ? AND ?
+                GROUP BY e.smownerid
+            ) tickets ON tickets.smownerid = u.id
+        ) remainingMonthStats ON remainingMonthStats.owner_id = sc.consultantname
+    ";
+    
+    // Build working days expressions
+    $startMonthFullWorkingDays = $this->buildWorkingDaysExpression(
+        date('Y-m-01', strtotime($soStartDate)), 
+        $startMonthFullEnd, 
+        $monthlyWorkingDaysColumn
+    );
+    $startMonthPartialWorkingDays = $this->buildWorkingDaysExpression($soStartDate, $startMonthFullEnd, $monthlyWorkingDaysColumn);
+    $remainingMonthWorkingDays = $this->buildWorkingDaysExpression(
+        $remainingMonthStart, 
+        $soEndDate, 
+        $monthlyWorkingDaysColumn
+    );
+}
 
         $query = "
             SELECT sc.*, u.first_name, u.last_name,
                    {$monthlyWorkingDaysColumn} AS monthly_working_days,
-                   {$totalWorkingDaysExpr} AS total_working_days,
-                   IFNULL(ticketStats.tickets_in_range, 0) AS tickets_in_range,
-                   ({$totalWorkingDaysExpr} - IFNULL(ticketStats.tickets_in_range, 0)) AS freeDays
+                   IFNULL(startMonthStats.start_month_tickets, 0) AS start_month_tickets,
+                   IFNULL(remainingMonthStats.remaining_month_tickets, 0) AS remaining_month_tickets,
+                   -- Check if consultant has any free days in start month
+                   ({$startMonthFullWorkingDays} - IFNULL(startMonthStats.start_month_tickets, 0)) AS start_month_free_days,
+                   -- Calculate free days from start date onwards
+                   ({$startMonthPartialWorkingDays} - IFNULL(startMonthStats.start_month_tickets, 0)) AS start_month_partial_free_days,
+                   -- Free days in remaining months (0 if same month)
+                   ({$remainingMonthWorkingDays} - IFNULL(remainingMonthStats.remaining_month_tickets, 0)) AS remaining_month_free_days,
+                   -- Total free days from start date onwards
+                   (({$startMonthPartialWorkingDays} - IFNULL(startMonthStats.start_month_tickets, 0)) + 
+                    ({$remainingMonthWorkingDays} - IFNULL(remainingMonthStats.remaining_month_tickets, 0))) AS total_free_days
             FROM vtiger_servicecompetency sc
             INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecompetencyid AND ce.deleted = 0
             INNER JOIN vtiger_users u ON u.id = sc.consultantname
             LEFT JOIN sc_userworkingdays uwd ON uwd.userid = sc.consultantname
-            {$ticketsJoin}
+            {$startMonthTicketsJoin}
+            {$remainingMonthTicketsJoin}
             WHERE sc.servicename = ?
               AND sc.scstatus = 'Active'
               AND sc.consultantrole IN ($roleQMarks)
+              -- Must have some free days from start date onwards to be eligible
+              -- AND ({$startMonthPartialWorkingDays} - IFNULL(startMonthStats.start_month_tickets, 0)) >= 0
               {$searchSql}
-            HAVING freeDays >= ?
+            HAVING total_free_days >= ?
         ";
-        $params = [
-            //$soStartDate, $soEndDate,
-            $calcStart, $calcEnd,
-            $serviceId,
-        ];
-        if (!empty($allowedRoles)) {
-            foreach ($allowedRoles as $r) $params[] = $r;
-        }
-        $params[] = $manday;
+        if ($isSameMonth) {
+    $params = [
+        // Same month: full month tickets (1st to end of month)
+        date('Y-m-01', strtotime($soStartDate)), $startMonthFullEnd,
+        // Service ID
+        $serviceId,
+    ];
+} else {
+    $params = [
+        // Different months: start month tickets (full month)
+        date('Y-m-01', strtotime($soStartDate)), $startMonthFullEnd,
+        // Remaining months tickets
+        $remainingMonthStart, $soEndDate,
+        // Service ID
+        $serviceId,
+    ];
+}
+if (!empty($allowedRoles)) {
+    foreach ($allowedRoles as $r) $params[] = $r;
+}
+		$params[] = $manday;
         $query = $adb->convert2Sql($query, $params);
         return $query;
     }

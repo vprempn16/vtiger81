@@ -86,9 +86,34 @@ class PromotionalMaterial extends Vtiger_CRMEntity {
 	var $default_order_by = 'title';
 	var $default_sort_order = 'ASC';
 
-	/** Partner role id (vtiger_role.roleid) — keep in sync with profile/role setup */
+	/** Partner role id (vtiger_role.roleid) - dynamically fetched from database */
 	public static function getPartnerRoleId() {
-		return 'H6';
+		global $adb;
+		
+		// Look for role with 'partner' in the name (case-insensitive)
+		$result = $adb->pquery(
+			"SELECT roleid FROM vtiger_role WHERE rolename LIKE ? ORDER BY roleid LIMIT 1",
+			array('%Partner%')
+		);
+		
+		if ($adb->num_rows($result) > 0) {
+			return $adb->query_result($result, 0, 'roleid');
+		}
+		
+		// Fallback: try common partner role names
+		$commonNames = array('Partner', 'Partners', 'partner', 'partners');
+		foreach ($commonNames as $name) {
+			$result = $adb->pquery(
+				"SELECT roleid FROM vtiger_role WHERE rolename = ?",
+				array($name)
+			);
+			if ($adb->num_rows($result) > 0) {
+				return $adb->query_result($result, 0, 'roleid');
+			}
+		}
+		
+		// If no partner role found, return null
+		return null;
 	}
 
 	public static function currentUserIsPartnerRole() {

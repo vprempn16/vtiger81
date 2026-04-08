@@ -771,81 +771,120 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                        html += `</select>`;
                        return html;
                    },
-    registerDisableActionsForExistingSC: function () {
-             var thisInstance = this;
-        jQuery('.lineItemRow').each(function () {
-         var row = jQuery(this);
-            var scId = row.find('td.consultant-details').find('.servicecontractsid').val();
-            if (scId && scId !== "0") {
+	registerDisableActionsForExistingSC: function () {
+		var thisInstance = this;
+		jQuery('.lineItemRow').each(function () {
+			var row = jQuery(this);
+			var scId = row.find('td.consultant-details').find('.servicecontractsid').val();
+			if (scId && scId !== "0") {
+				//row.find('.deleteRow').hide();
 
-                row.find('.deleteRow').hide();
+				row.find('.dragHandle').addClass('disabled-drag')
+					.css('opacity', '0.4')
+					.css('cursor', 'not-allowed');
 
-                row.find('.dragHandle').addClass('disabled-drag')
-                                       .css('opacity', '0.4')
-                                       .css('cursor', 'not-allowed');
+				row.attr('data-no-drag', 'true');
+				//row.find('input.qty').attr("readonly", "readonly");
+				row.addClass('locked-row');
 
-                row.attr('data-no-drag', 'true');
-                row.find('input.qty').attr("readonly", "readonly");
-                row.addClass('locked-row');
+			}
+		});
+		thisInstance.initializeSortable();
+		jQuery(document).off('click', '#addService').on('click', '#addService', function (e) {
+			thisInstance.registerDisableActionsForExistingSC();
+		});
+	//	jQuery(document).off('click', '.deleteRow').on('click', '.deleteRow', function (e) {
+	//		thisInstance.registerDisableActionsForExistingSC();
+		//	});
+		jQuery(document).off('click.deleteRowConfirm').on('click.deleteRowConfirm', '.deleteRow', function (e) {
 
-            }
-        });
-        thisInstance.initializeSortable();
-        jQuery(document).off('click', '#addService').on('click', '#addService', function (e) {
-              thisInstance.registerDisableActionsForExistingSC();
-        });
-        jQuery(document).off('click', '.deleteRow').on('click', '.deleteRow', function (e) {
-               thisInstance.registerDisableActionsForExistingSC();
-        });
-    },
-    initializeSortable: function() {
-        if (jQuery('.lineitemTableContainer').length) {
-            var tbody = jQuery("#lineItemTab");
-        
-        if (typeof tbody.sortable !== 'undefined' && 
-            typeof tbody.sortable('instance') !== 'undefined') {
-            // Sortable is initialized, destroy it properly
-            tbody.sortable('destroy');
-        }
-        
-        tbody.sortable({
-            items: "tr.lineItemRow:not([data-no-drag='true'])", // Use attribute selector
-            cancel: "[data-no-drag='true'], .locked-row, input, textarea, button, select, a",
-            handle: ".dragHandle", 
-            axis: "y",
-            containment: "parent",
-            cursor: "move",
-            tolerance: "pointer",
-            placeholder: "sortable-placeholder",
-            helper: "clone",
-            opacity: 0.8,
-            start: function(e, ui) {
-                ui.placeholder.height(ui.item.height());
-                ui.placeholder.css('background-color', '#f0f0f0');
-                ui.placeholder.css('border', '1px dashed #ccc');
-            },
-            stop: function(e, ui) {
-            },
-            change: function(e, ui) {
-                // Optional: Handle while dragging
-            }
-        });
-        }
-    },
-    disableDragOnLockedRows_old : function () {
-        if (jQuery('.lineitemTableContainer').length) {
-            var tbody = jQuery("#lineItemTab tbody");
-            tbody.on("mousedown", ".lineItemRow", function (e) {  
-            var row = jQuery(this);
-            if (row.attr("data-no-drag") === "true") {
-                    e.stopImmediatePropagation(); // stops sortable from starting
-                    e.preventDefault();
-                    return false;
-                }
-            });
+			e.preventDefault();
+			e.stopPropagation();
+			e.stopImmediatePropagation(); // VERY IMPORTANT
 
-        }
-    },
+			var deleteBtn = jQuery(this);
+			var row = deleteBtn.closest('.lineItemRow');
+			var scId = row.find('.servicecontractsid').val();
+
+			// Professional correct message
+			var message = `
+    <b>Confirm Line Item Deletion</b><br><br>
+    This line item is linked to existing <b>Service Contracts</b> and associated <b>Tickets</b>.<br><br>
+
+    Before removing this row, please ensure that the related Service Contracts and Tickets are reviewed and removed if necessary.<br><br>
+
+    Failing to do so may lead to inconsistencies in consultant allocation, availability, and reporting.<br><br>
+
+    <b>Do you want to proceed with removing this line item?</b>
+    `;
+
+			// Show confirmation
+			app.helper.showConfirmationBox({message: message}).then(
+				function () {
+					// ✅ AFTER confirmation → delete row manually
+
+					// Remove row safely
+					row.remove();
+
+					// Trigger recalculation if needed
+					jQuery('#lineItemTab').trigger('change');
+
+				},
+				function () {
+					// ❌ Cancel → do nothing
+				}
+			);
+
+		});
+	},
+	initializeSortable: function() {
+		if (jQuery('.lineitemTableContainer').length) {
+			var tbody = jQuery("#lineItemTab");
+
+			if (typeof tbody.sortable !== 'undefined' && 
+				typeof tbody.sortable('instance') !== 'undefined') {
+				// Sortable is initialized, destroy it properly
+				tbody.sortable('destroy');
+			}
+
+			tbody.sortable({
+				items: "tr.lineItemRow:not([data-no-drag='true'])", // Use attribute selector
+				cancel: "[data-no-drag='true'], .locked-row, input, textarea, button, select, a",
+				handle: ".dragHandle", 
+				axis: "y",
+				containment: "parent",
+				cursor: "move",
+				tolerance: "pointer",
+				placeholder: "sortable-placeholder",
+				helper: "clone",
+				opacity: 0.8,
+				start: function(e, ui) {
+					ui.placeholder.height(ui.item.height());
+					ui.placeholder.css('background-color', '#f0f0f0');
+					ui.placeholder.css('border', '1px dashed #ccc');
+				},
+				stop: function(e, ui) {
+				},
+				change: function(e, ui) {
+					// Optional: Handle while dragging
+				}
+			});
+		}
+	},
+	disableDragOnLockedRows_old : function () {
+		if (jQuery('.lineitemTableContainer').length) {
+			var tbody = jQuery("#lineItemTab tbody");
+			tbody.on("mousedown", ".lineItemRow", function (e) {  
+				var row = jQuery(this);
+				if (row.attr("data-no-drag") === "true") {
+					e.stopImmediatePropagation(); // stops sortable from starting
+					e.preventDefault();
+					return false;
+				}
+			});
+
+		}
+	},
 
 
      registerEvents : function(){
