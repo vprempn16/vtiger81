@@ -417,6 +417,136 @@ class ServiceCompetency_ListView_Model extends Vtiger_Base_Model {
         }
         return implode(',', array_fill(0, count($array), '?'));
     }
+        public function getCustomQueryForPopup_old($serviceId, $salesOrderId, $startDate, $endDate, $manday, $role) {
+        global $adb;
+        if (empty($serviceId)) return '';
+        $soStartDate = $startDate;
+        $soEndDate   = $endDate;
+        if (empty($soStartDate)) $soStartDate = date('Y-m-d');
+        if (empty($soEndDate))   $soEndDate   = date('Y-m-d');
+        $startDT = DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime($soStartDate)));
+        $endDT   = DateTime::createFromFormat('Y-m-d', date('Y-m-d', strtotime($soEndDate)));
+        if (!$startDT || !$endDT) {
+            $monthsDiff = 1;
+        } else {
+            $startYM = intval($startDT->format('Y')) * 12 + intval($startDT->format('m'));
+            $endYM   = intval($endDT->format('Y')) * 12 + intval($endDT->format('m'));
+            $monthsDiff = max(1, ($endYM - $startYM + 1)); // inclusive months
+        }
+        $monthsDiff = (int)$monthsDiff;
+        $sampleDateResult = $adb->pquery("SELECT cf_792 FROM vtiger_ticketcf WHERE cf_792 IS NOT NULL AND cf_792 != '' LIMIT 1", []);
+        $sampleDate = ($adb->num_rows($sampleDateResult) > 0) ? $adb->query_result($sampleDateResult, 0, 'cf_792') : '';
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $sampleDate)) {
+            $format = '%Y-%m-%d';
+        } elseif (preg_match('/^\d{2}-\d{2}-\d{4}$/', $sampleDate)) {
+            $format = '%m-%d-%Y';
+        } elseif (preg_match('/^\d{2}\/\d{2}\/\d{4}$/', $sampleDate)) {
+            $format = '%m/%d/%Y';
+        } else {
+            $format = '%Y-%m-%d'; // fallback
+        }
+        $searchParams = $this->get('search_params');
+        $searchSql = $this->getSearchSql($searchParams); // assumes this returns a string prefixed with spaces/ANDs
+
+        $roleByRate = array(1 =>'Not Started',2 => 'Learner',3 => 'Implementer',4 =>'Reviewer',5 => 'Project Manager');
+        $selectedRoleLevel = array_search($role, $roleByRate);
+        if (!$selectedRoleLevel) { $selectedRoleLevel = 1; }
+
+        $allowedRoles = [];
+        foreach ($roleByRate as $rate => $rName) {
+            if ($rate >= $selectedRoleLevel) {
+                            $allowedRoles[] = $rName;
+            }
+        }
+        $roleQMarks = $this->generateQuestionMarks($allowedRoles);
+        $monthlyWorkingDaysColumn = "IFNULL(uwd.working_days, 0)";
+        $totalWorkingDaysExpr = $this->buildWorkingDaysExpression($soStartDate, $soEndDate, $monthlyWorkingDaysColumn);
+
+         $calcStart = date('Y-m-01', strtotime($soStartDate));
+        $calcEnd   = date('Y-m-t', strtotime($soEndDate));
+        $ticketsJoin = "
+            LEFT JOIN (
+                SELECT e.smownerid AS owner_id, COUNT(*) AS tickets_in_range
+                FROM vtiger_troubletickets tt
+                INNER JOIN vtiger_ticketcf tcf ON tcf.ticketid = tt.ticketid
+                INNER JOIN vtiger_crmentity e ON e.crmid = tt.ticketid AND e.deleted = 0
+                WHERE STR_TO_DATE(tcf.cf_792, '{$format}') BETWEEN ? AND ?
+                GROUP BY e.smownerid
+            ) ticketStats ON ticketStats.owner_id = sc.consultantname
+        ";
+
+        $query = "
+            SELECT sc.*, u.first_name, u.last_name,
+                   {$monthlyWorkingDaysColumn} AS monthly_working_days,
+                   {$totalWorkingDaysExpr} AS total_working_days,
+                   IFNULL(ticketStats.tickets_in_range, 0) AS tickets_in_range,
+                   ({$totalWorkingDaysExpr} - IFNULL(ticketStats.tickets_in_range, 0)) AS freeDays
+            FROM vtiger_servicecompetency sc
+            INNER JOIN vtiger_crmentity ce ON ce.crmid = sc.servicecompetencyid AND ce.deleted = 0
+            INNER JOIN vtiger_users u ON u.id = sc.consultantname
+	    LEFT JOIN sc_userworkingdays uwd ON uwd.userid = sc.consultantname
+            {$ticketsJoin}
+            WHERE sc.servicename = ?
+              AND sc.scstatus = 'Active'
+              AND sc.consultantrole IN ($roleQMarks)
+              {$searchSql}
+            HAVING freeDays >= ?
+        ";
+        $params = [
+            //$soStartDate, $soEndDate,
+            $calcStart, $calcEnd,
+            $serviceId,
+        ];
+        if (!empty($allowedRoles)) {
+            foreach ($allowedRoles as $r) $params[] = $r;
+        }
+        $params[] = $manday;
+        $query = $adb->convert2Sql($query, $params);
+        //echo"<pre>";print_r([$totalWorkingDaysExpr,$soStartDate,$soEndDate,$query]);die('@');
+        //echo"<pre>";print_r($query);die;
+        return $query;
+    }
+    protected function buildWorkingDaysExpression_old($startDate, $endDate, $columnExpr = 'IFNULL(uwd.working_days, 0)') {
+        $startTs = strtotime($startDate);
+        $endTs = strtotime($endDate);
+        if ($startTs === false || $endTs === false) {
+            return $columnExpr;
+        }
+
+        if ($startTs > $endTs) {
+            $tmp = $startTs;
+            $startTs = $endTs;
+            $endTs = $tmp;
+        }
+
+        $parts = array();
+        $current = new DateTime(date('Y-m-d', $startTs));
+        $endDateObj = new DateTime(date('Y-m-d', $endTs));
+
+        while ($current <= $endDateObj) {
+            $monthStart = new DateTime($current->format('Y-m-01'));
+            $monthEnd = new DateTime($current->format('Y-m-t'));
+
+            $segmentStart = ($current > $monthStart) ? clone $current : clone $monthStart;
+            $segmentEnd = ($endDateObj < $monthEnd) ? clone $endDateObj : clone $monthEnd;
+
+            $overlapDays = (int)$segmentStart->diff($segmentEnd)->days + 1;
+            if ($overlapDays < 1) {
+                $current = $monthEnd->modify('+1 day');
+                continue;
+            }
+
+            $parts[] = "LEAST({$columnExpr}, {$overlapDays})";
+
+            $monthEnd->modify('+1 day');
+            $current = $monthEnd;
+        }
+        if (empty($parts)) {
+            return $columnExpr;
+        }
+
+        return '( ' . implode(' + ', $parts) . ' )';
+    }
     public function getCustomQueryForPopup($serviceId, $salesOrderId, $startDate, $endDate, $manday, $role) {
         global $adb;
         if (empty($serviceId)) return '';
@@ -486,6 +616,7 @@ $isSameMonth = ($startMonth === $endMonth);
 
 if ($isSameMonth) {
     // Same month: only need start month calculation
+	$startMonthFullStart = date('Y-m-01', strtotime($soStartDate));
     $startMonthFullEnd = date('Y-m-t', strtotime($soStartDate));
     $startMonthTicketsJoin = "
         LEFT JOIN (
@@ -511,11 +642,11 @@ if ($isSameMonth) {
     
     // Build working days expressions
     $startMonthFullWorkingDays = $this->buildWorkingDaysExpression(
-        date('Y-m-01', strtotime($soStartDate)), 
+        $startMonthFullStart, 
         $startMonthFullEnd, 
         $monthlyWorkingDaysColumn
     );
-    $startMonthPartialWorkingDays = $this->buildWorkingDaysExpression($soStartDate, $soEndDate, $monthlyWorkingDaysColumn);
+    $startMonthPartialWorkingDays = $this->buildWorkingDaysExpression($startMonthFullStart, $startMonthFullEnd, $monthlyWorkingDaysColumn);
     
 } else {
     // Different months: use original logic

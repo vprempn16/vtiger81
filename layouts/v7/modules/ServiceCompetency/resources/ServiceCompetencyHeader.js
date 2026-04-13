@@ -167,9 +167,7 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 vtUtils.hideValidationMessage(endDateField);
                                 vtUtils.hideValidationMessage(jQuery('[name="duedate"]'));
                 if (soDueDate) {
-                    var parts = soDueDate.split('/');  // ["28","02","2026"]
-                    var formatted = parts[2] + '-' + parts[1] + '-' + parts[0]; // yyyy-mm-dd
-                     dueDateObj = new Date(formatted);
+    			dueDateObj = thisInstance.parseVtigerDate(soDueDate);
                 }
                 if(soDueDate == '' || !soDueDate){
                      app.helper.showErrorNotification({message: "Please select Due Date"});
@@ -193,8 +191,8 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 if (startDate) {
                     var startDateObj = new Date(startDate);
                      if (startDateObj < today) {
-                        vtUtils.showValidationMessage(startDateField, "Start Date cannot be in the past");
-                         return false;
+                        //vtUtils.showValidationMessage(startDateField, "Start Date cannot be in the past");
+                        // return false;
                      }
                      if (endDate) {
                         var endDateObj = new Date(endDate);
@@ -206,7 +204,8 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 }
                 if (endDate && dueDateObj) {
                         var endDateObj2 = new Date(endDate);
-                        if (endDateObj2 > dueDateObj) {
+                        endDateObj2.setHours(0,0,0,0);
+			if (endDateObj2 > dueDateObj) {
                                 vtUtils.showValidationMessage( endDateField,"End Date should not exceed Sales Order Due Date (" + soDueDate + ")");
                                 return false;
                         }
@@ -257,6 +256,24 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                     app.event.one('post.PopupSelection.click', postPopupHandler);
         });
     },
+	parseVtigerDate : function(dateStr) {
+		var format = jQuery('body').data('user-dateformat'); // dd-mm-yyyy
+		var parts = dateStr.split(/[.\-/]/);
+		var formatParts = format.split(/[.\-/]/);
+
+		var day, month, year;
+
+		for (var i = 0; i < formatParts.length; i++) {
+			if (formatParts[i] === 'dd') day = parts[i];
+			if (formatParts[i] === 'mm') month = parts[i];
+			if (formatParts[i] === 'yyyy') year = parts[i];
+		}
+
+		var dateObj = new Date(year, month - 1, day);
+		dateObj.setHours(0,0,0,0);
+
+		return dateObj;
+	},
     /*postPopupAction : function(itemRow, selectedItemsData,selectedModuleName){
         for(var index in selectedItemsData) {
             if(index != 0) {
@@ -295,16 +312,16 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                               var recordData = responseData[id];
                               var serviceName = recordData.name;
                               var info = recordData.info || {};
+				     console.log(info,'serviceName');
                               // popup-provided values
                               var popupServiceId = info.servicename || info.hdnProductId || ''; // service/product id
                               var consultantUserId = info.consultantname || '';
                               var consultantRole = info.consultantrole || '';
-                              var freeDates = info.freedays || []; // array or count
+                              var freeDates = info.total_free_days || []; // array or count
                               var freeCount = Array.isArray(freeDates) ? freeDates.length : parseInt(freeDates || 0);
                               var selling_price = recordData.selling_price;
                               // Current row qty (attempt common selectors)
                                 itemRow.closest('.input-group').find('.consultantname').val(consultantUserId);
-
                               var qtyField = itemRow.closest('tr.lineItemRow').find('input.quantity, input[name^=\"qty\"]');
                               var currentTicketCount = parseInt(itemRow.closest('tr.lineItemRow').find('input.ticketcount').val() || 0);
                               var currentQty = parseInt(qtyField.val() || 0);
@@ -324,6 +341,7 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                                         if (ticketCountInput.length) {
                                             ticketCountVal = parseInt(ticketCountInput.val() || 0);
                                         }   
+					console.log(rowServiceId,popupServiceId,rowConsultantId,consultantUserId);
                                         if (rowServiceId === popupServiceId && rowConsultantId === consultantUserId) {
                                             duplicateFound = true;
                                             if (ticketCountVal === 0) {
@@ -347,6 +365,7 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                                       applyValues();
                                     return;
                                 }
+				console.log(duplicateFound ,duplicateTotalQty,freeDates,freeDates,'sa');
                                 if (duplicateFound && duplicateTotalQty > freeDates) {
                                     var message = 
                                         "You have already selected the same Service and Consultant.\n\n" +
@@ -447,14 +466,13 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
 
      validateLineItems: function() {
         var isValid = true;
+	var thisInstance = this;
         var errorMessage = app.vtranslate('Please fill required fields: Service Competency in all rows.');
             var soDueDate = jQuery('[name="duedate"]').val();
             var dueDateObj = null;
-            if (soDueDate) {
-                var parts = soDueDate.split('/');  // ["28","02","2026"]
-                var formatted = parts[2] + '-' + parts[1] + '-' + parts[0]; // yyyy-mm-dd
-                dueDateObj = new Date(formatted);
-            }
+	     if (soDueDate) {
+			dueDateObj = thisInstance.parseVtigerDate(soDueDate);
+	     }
             var today = new Date();
           jQuery('.lineItemRow').each(function() {
             var row = jQuery(this);
@@ -497,8 +515,8 @@ jQuery.Class("ServiceCompetencyHeader_Js",{},{
                 if (startDateValue) {
                     var startDateObj = new Date(startDateValue);
                      if (startDateObj < today) {
-                         isValid = false;
-                        vtUtils.showValidationMessage(startDateField, "Start Date cannot be in the past");
+                        // isValid = false;
+                        //vtUtils.showValidationMessage(startDateField, "Start Date cannot be in the past");
                      }
                      if (endDateValue) {
                         var endDateObj = new Date(endDateValue);

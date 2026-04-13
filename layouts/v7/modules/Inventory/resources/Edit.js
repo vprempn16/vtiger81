@@ -2503,7 +2503,7 @@ Vtiger_Edit_Js("Inventory_Edit_Js", {
 		this.lineItemsHolder.on('click','.deleteRow',function(e){
 			var element = jQuery(e.currentTarget);
 			//removing the row
-			self.getClosestLineItemRow(element).remove();
+			//self.getClosestLineItemRow(element).remove();
 			self.checkLineItemRow();
 			self.lineItemDeleteActions();
 		});

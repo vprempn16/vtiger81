@@ -143,60 +143,60 @@ class ServiceCompetencyHandler{
                         $inventoryIndex++;
                     }
                 }
-                if (empty($productLists)) {
-                    $query = "
-                        SELECT *
-                        FROM vtiger_inventoryproductrel AS rel
-                        WHERE rel.id = ? 
-                        ORDER BY rel.sequence_no
-                        ";
-                    $result = $adb->pquery($query, [$recordid]);
-                    while ($row = $adb->fetch_array($result)) {
-                        $productId    = $row['productid'];
-                        $sequence_no  = $row['sequence_no'];
-                        $consultant   = $row['consultantname'];
-                        $serviceComp  = $row['servicecompetencyid'];
-                        $listPrice    = $row['listprice'] ?? '';
-                        $qty          = $row['quantity'] ?? '';
-                        $startdate    = $row['consultant_startdate'] ?? '';
-                        $enddate      = $row['consultant_enddate'] ?? '';
-                        $lineitem_id  = $row['lineitem_id'] ?? '';
-                        $contractsGrouped = $this->getContractsGrouped($productId,$recordid);
-                        $key = $sequence_no;
+		if (empty($productLists)) {
+			$query = "
+			SELECT *
+			FROM vtiger_inventoryproductrel AS rel
+			WHERE rel.id = ? 
+			ORDER BY rel.sequence_no
+			";
+			$result = $adb->pquery($query, [$recordid]);
+			while ($row = $adb->fetch_array($result)) {
+				$productId    = $row['productid'];
+				$sequence_no  = $row['sequence_no'];
+				$consultant   = $row['consultantname'];
+				$serviceComp  = $row['servicecompetencyid'];
+				$listPrice    = $row['listprice'] ?? '';
+				$qty          = $row['quantity'] ?? '';
+				$startdate    = $row['consultant_startdate'] ?? '';
+				$enddate      = $row['consultant_enddate'] ?? '';
+				$lineitem_id  = $row['lineitem_id'] ?? '';
+				$contractsGrouped = $this->getContractsGrouped($productId,$recordid);
+				$key = $sequence_no;
 
-                        $serviceContractId = 0;
-                        if (!empty($contractsGrouped[$key])) {
-                            // pop first in order → each line item receives next contract
-                            $serviceContractId = $contractsGrouped[$key];
-                        }
-                        $ticketsCount = 0;
-                        if ($serviceContractId > 0) {
-                            $tRes = $adb->pquery("
-                                    SELECT relcrmid AS ticketid
-                                    FROM vtiger_crmentityrel
-                                    WHERE crmid = ? AND module = 'ServiceContracts' AND relmodule = 'HelpDesk'
-                                    ", [$serviceContractId]);
+				$serviceContractId = 0;
+				if (!empty($contractsGrouped[$key])) {
+					// pop first in order → each line item receives next contract
+					$serviceContractId = $contractsGrouped[$key];
+				}
+				$ticketsCount = 0;
+				if ($serviceContractId > 0) {
+					$tRes = $adb->pquery("
+				    SELECT relcrmid AS ticketid
+				    FROM vtiger_crmentityrel
+				    WHERE crmid = ? AND module = 'ServiceContracts' AND relmodule = 'HelpDesk'
+				    ", [$serviceContractId]);
 
-                            $ticketsCount = (int)$adb->num_rows($tRes);
-                        }
+			    $ticketsCount = (int)$adb->num_rows($tRes);
+			}
 
 
-                        $productLists[]     = $productId;
-                        $consultantList[]   = $consultant;
-                        $compentencyidList[]= $serviceComp;
-                        $idx = (int)$sequence_no;
-                        $requestData["consultantname{$idx}"]       = $consultant;
-                        $requestData["listPrice{$idx}"]            = $listPrice;
-                        $requestData["servicecompetencyid{$idx}"]  = $serviceComp;
-                        $requestData["hdnProductId{$idx}"]         = $productId;
-                        $requestData["qty{$idx}"]                  = $qty;
-                        $requestData["start_date{$idx}"]            = $startdate;
-                        $requestData["end_date{$idx}"]              = $enddate;
-                        $requestData["lineitem_id{$idx}"]              = $lineitem_id;
-                        $requestData["servicecontractsid{$idx}"]              = $serviceContractId;
-                        $requestData["ticketscount$idx}"]              = $ticketsCount;
-                    }
-                }
+			$productLists[]     = $productId;
+			$consultantList[]   = $consultant;
+			$compentencyidList[]= $serviceComp;
+			$idx = (int)$sequence_no;
+			$requestData["consultantname{$idx}"]       = $consultant;
+			$requestData["listPrice{$idx}"]            = $listPrice;
+			$requestData["servicecompetencyid{$idx}"]  = $serviceComp;
+			$requestData["hdnProductId{$idx}"]         = $productId;
+			$requestData["qty{$idx}"]                  = $qty;
+			$requestData["start_date{$idx}"]            = $startdate;
+			$requestData["end_date{$idx}"]              = $enddate;
+			$requestData["lineitem_id{$idx}"]              = $lineitem_id;
+			$requestData["servicecontractsid{$idx}"]              = $serviceContractId;
+			$requestData["ticketscount$idx}"]              = $ticketsCount;
+		    }
+		}
 
                 $i = 1;
                 $wsId = $entityData->getId();
