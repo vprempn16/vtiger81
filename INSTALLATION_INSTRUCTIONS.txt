@@ -1,0 +1,254 @@
+# Vtiger CRM Module Installation Instructions
+
+This document provides complete installation instructions for two custom modules:
+1. PromotionalMaterial Module
+2. BranchUsers Module with Project Module Enhancement
+
+---
+
+## PART 1: PromotionalMaterial Module Installation
+
+### Prerequisites
+- Vtiger CRM 7.x or higher installed
+- Admin access to Vtiger CRM
+- FTP/SSH access to server files
+- Database access (optional for troubleshooting)
+
+### Step 1: Module Installation
+1. Navigate to **Settings** (gear icon) > **Module Manager**
+2. Click **Import Module** button
+3. Upload the PromotionalMaterial module zip file
+4. Follow the installation wizard
+5. After installation, ensure the module is **enabled** in Module Manager
+
+### Step 2: Comment Mentions Module Installation (Required for Partner Notifications)
+1. Install **VTAtomCommentsMentions** module if not already installed
+2. This module enables @mention functionality in comments
+3. Enable the module in **Settings > Module Manager**
+
+### Step 3: Notifier Module Installation
+1. Install **VDNotifierPro** module for real-time notifications
+2. Navigate to **Settings > Module Manager**
+3. Import and enable the VDNotifierPro module
+4. Configure notification settings in **Settings > VDNotifierPro**
+
+### Step 4: Outgoing Server Configuration
+1. Navigate to **Settings > Outgoing Server**
+2. Configure SMTP settings:
+   - Server name (e.g., smtp.gmail.com)
+   - Port (e.g., 587 for TLS, 465 for SSL)
+   - Username and password
+   - Authentication method
+3. Test email configuration with **Send Test Email**
+4. Ensure "Default Outgoing Server" is selected
+
+### Step 5: Partner Role Configuration
+1. Navigate to **Settings > Roles**
+2. Verify Partner role exists (default: H6)
+3. If using different role ID, update the following files:
+   - `modules/PromotionalMaterial/PromotionalMaterial.php` -> `getPartnerRoleId()` method
+   - `include/utils/UserInfoUtil.php` -> `$pmPartnerRoleId` variable
+   - `handlers/PromotionalMaterialHandler.php` -> partner role checks
+
+### Step 6: Workflow Creation for Partner Notifications
+1. Navigate to **Settings > Workflows**
+2. Create new workflow with following settings:
+   - **Module**: PromotionalMaterial
+   - **Condition**: When Promotional Status equals "Published"
+   
+3. Add **Invoke Custom Function** tasks:
+
+   **Task 1: Send VDNotifierPro Notification**
+   - Method name: `PMNotifyPartners`
+   - This sends real-time notifications to all Partner users
+   - Title includes record title automatically
+
+   **Task 2: Send Email to Partners**
+   - Method name: `PMSendPartnerEmail`
+   - Create email template named `PMPartnerEmailTemplate`
+   - Template module: Users
+   - Available placeholders:
+     - `###PM_DETAIL_URL###` - Link to promotional material
+     - `###PM_RECORD_TITLE###` - Record title
+
+### Step 7: Email Template Configuration
+1. Navigate to **Settings > Templates**
+2. Create new email template:
+   - **Template Name**: `PMPartnerEmailTemplate`
+   - **Module**: Users
+   - **Subject**: New Promotional Material Available: ###PM_RECORD_TITLE###
+   - **Body**: 
+     ```
+     Dear Partner,
+     
+     A new promotional material has been published:
+     
+     Title: ###PM_RECORD_TITLE###
+     View Details: ###PM_DETAIL_URL###
+     
+     Please log in to view and download the materials.
+     
+     Best regards,
+     Your Team
+     ```
+
+### Step 8: Permission Configuration
+1. Navigate to **Settings > Profiles**
+2. Configure permissions for Partner profiles:
+   - Allow: PromotionalMaterial module access
+   - Allow: DetailView (to view published materials)
+   - Allow: Download attachments
+   - Deny: CreateView, EditView, Delete (for partners)
+
+### Step 9: Testing
+1. **Admin Test**:
+   - Create a test promotional material
+   - Set status to "Published"
+   - Verify workflows execute
+   - Check notifications and emails
+
+2. **Partner Test**:
+   - Login as Partner user
+   - Verify only published materials appear in list
+   - Test viewing and downloading attachments
+   - Verify create/edit/delete are blocked
+
+### Troubleshooting
+- If workflows don't execute: Check event handler registration
+- If partners see all materials: Verify role ID configuration
+- If notifications don't work: Check VDNotifierPro and email configuration
+- Legacy event handler: Enable with `PM_PROMOTIONAL_USE_LEGACY_EVENT_NOTIFIER = true` in config.inc.php
+
+---
+
+## PART 2: BranchUsers Module Installation
+
+### Prerequisites
+- Vtiger CRM 7.x or higher installed
+- Admin access to Vtiger CRM
+- FTP/SSH access to server files
+- Project Module already installed (for enhancement)
+
+### Step 1: BranchUsers Module Installation
+1. Navigate to **Settings** (gear icon) > **Module Manager**
+2. Click **Import Module** button
+3. Upload the BranchUsers module zip file
+4. Follow the installation wizard
+5. Ensure the module is **enabled** after installation
+
+### Step 2: Project Module Enhancement Setup
+1. Extract the ProjectOfBranchUsers.zip file in your Vtiger root directory
+2. This will enhance the existing Project module with BranchUsers functionality
+3. The zip file contains:
+   - Modified Project module files
+   - Branch-related views and templates
+   - Database schema updates
+   - Custom field mappings
+
+### Step 3: Database Updates
+1. The enhancement package includes SQL scripts for database updates
+2. Run the SQL scripts to create necessary tables and fields:
+   - Branch assignment tables
+   - User-branch relationship tables
+   - Project-branch mapping tables
+
+### Step 4: Branch Configuration
+1. Navigate to **BranchUsers** module
+2. Create branches as needed:
+   - Branch name
+   - Branch code
+   - Branch manager assignment
+   - Location details
+3. Assign users to branches:
+   - Navigate to User Management
+   - Edit user profiles
+   - Assign appropriate branch access
+
+### Step 5: Project Module Integration
+1. Navigate to **Project** module
+2. Verify new branch-related fields are available:
+   - Branch assignment dropdown
+   - Branch-based filtering
+   - Branch user selection in project teams
+3. Test project creation with branch assignments
+
+### Step 6: Permission Setup
+1. Configure branch-based permissions:
+   - Branch managers can see projects for their branch
+   - Branch users can only access assigned branch projects
+   - Admin users retain full access
+2. Set up role-based access controls in **Settings > Profiles**
+
+### Step 7: Testing
+1. **Branch Creation Test**:
+   - Create test branches
+   - Assign users to branches
+   - Verify branch assignments work
+
+2. **Project Integration Test**:
+   - Create projects with branch assignments
+   - Test branch-based filtering
+   - Verify user access based on branch
+
+3. **Permission Test**:
+   - Test different user roles
+   - Verify branch-based access restrictions
+   - Check project visibility rules
+
+---
+
+## POST-INSTALLATION CHECKLIST
+
+### For Both Modules:
+- [ ] All modules are enabled in Module Manager
+- [ ] Database tables created successfully
+- [ ] Permissions configured correctly
+- [ ] Email server working (for notifications)
+- [ ] Workflow rules active and tested
+
+### For PromotionalMaterial:
+- [ ] Partner role configured correctly
+- [ ] Workflows created and tested
+- [ ] Email templates created
+- [ ] VDNotifierPro notifications working
+- [ ] Partner access restrictions verified
+
+### For BranchUsers:
+- [ ] Branches created and assigned
+- [ ] Project module integration working
+- [ ] Branch-based permissions active
+- [ ] User-branch relationships established
+- [ ] Project filtering by branch functional
+
+---
+
+## SUPPORT AND MAINTENANCE
+
+### Regular Maintenance:
+1. Monitor workflow execution logs
+2. Check email delivery reports
+3. Review user access permissions periodically
+4. Update module configurations as needed
+
+### Common Issues:
+- **Workflows not executing**: Clear Vtiger cache, re-register event handlers
+- **Email not sending**: Verify SMTP configuration, check email logs
+- **Permission issues**: Review role assignments and profile permissions
+- **Module conflicts**: Disable conflicting modules, check for dependencies
+
+### Backup Recommendations:
+1. Backup database before module installation
+2. Backup custom files before applying enhancements
+3. Document any custom modifications for future updates
+
+---
+
+## CONTACT INFORMATION
+
+For technical support or questions about these modules:
+- Check Vtiger system logs for error details
+- Review module documentation in respective README files
+- Contact your system administrator for server-related issues
+
+**Installation Complete!** 
+Please test all functionality thoroughly before deploying to production environment.

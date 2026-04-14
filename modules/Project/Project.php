@@ -108,6 +108,15 @@ class Project extends CRMEntity {
 	}
 
 	function save_module($module) {
+		global $current_user;
+		$helper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+		if (file_exists($helper)) {
+			require_once $helper;
+			$pid = (int)$this->id;
+			if ($pid > 0) {
+				BranchUsers_HierarchyAccess::upsertProjectBranchScope($pid, $current_user);
+			}
+		}
 	}
 
 	/**
@@ -447,7 +456,7 @@ class Project extends CRMEntity {
              parent::delete_related_module($module, $crmid, $with_module, $with_crmid);
              return;
          }
-        $destinationModule = vtlib_purify($_REQUEST['destination_module']);
+		 $destinationModule = isset($_REQUEST['destination_module']) ? vtlib_purify($_REQUEST['destination_module']) : '';
 		if(empty($destinationModule)) $destinationModule = $with_module;
         if (!is_array($with_crmid)) $with_crmid = Array($with_crmid);
         foreach($with_crmid as $relcrmid) {
@@ -637,6 +646,7 @@ class Project extends CRMEntity {
 	}
 	
 	function get_emails($recordId, $currentTabId, $relTabId, $actions=false) {
+		$button = '';
 		global $currentModule,$single_pane_view;
 		$relModuleName = vtlib_getModuleNameById($relTabId);
 		$singularRelModuleName = vtlib_tosingular($relModuleName);
@@ -693,6 +703,7 @@ class Project extends CRMEntity {
 	 * @return <Array> - $projectTasks
 	 */
 	public function getProjectTasks($recordId) {
+		$projectTasks = array();
 		$db = PearDatabase::getInstance();
 		$sql = "SELECT projecttaskid FROM vtiger_projecttask 
 				INNER JOIN vtiger_crmentity ON vtiger_projecttask.projecttaskid = vtiger_crmentity.crmid
@@ -703,8 +714,7 @@ class Project extends CRMEntity {
 		}
 		return $projectTasks;
 	}
-
-	 function getNonAdminAccessControlQuery($module, $user, $scope = '')
+	function getNonAdminAccessControlQuery($module, $user, $scope = '')
         {
                 require('user_privileges/user_privileges_' . $user->id . '.php');
                 require('user_privileges/sharing_privileges_' . $user->id . '.php');
@@ -738,6 +748,17 @@ class Project extends CRMEntity {
                                         "vtiger_crmentity$scope.smownerid OR vtiger_crmentity$scope.smownerid IS NULL";
                         }
                 }
+				// Partner scope restriction (do not switch admin context here).
+				$partnerHelper = 'modules/BranchUsers/helpers/PartnerAccess.php';
+				if (file_exists($partnerHelper)) {
+					require_once $partnerHelper;
+					$query .= BranchUsers_PartnerAccess::appendPartnerCrmentityFilter($module, $user, $scope);
+				}
+				$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+				if (file_exists($hierarchyHelper)) {
+					require_once $hierarchyHelper;
+					$query .= BranchUsers_HierarchyAccess::appendProjectPrivateLineSqlFragment($user, "vtiger_crmentity{$scope}.smownerid", "vtiger_crmentity{$scope}.smcreatorid");
+				}
                 return $query;
         }
 }

@@ -14,6 +14,31 @@
 class Project_ListView_Model extends Vtiger_ListView_Model {
 
 	/**
+	 * Apply strict private-line restriction at ListView query level.
+	 * This keeps list visibility aligned with Detail/Edit/Save checks.
+	 *
+	 * @return string
+	 */
+	public function getQuery() {
+		$listQuery = parent::getQuery();
+		$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+		if (!file_exists($hierarchyHelper)) {
+			return $listQuery;
+		}
+		require_once $hierarchyHelper;
+		$currentUser = vglobal('current_user');
+		if (!$currentUser || empty($currentUser->id)) {
+			return $listQuery . ' AND 1=0 ';
+		}
+		$listQuery .= BranchUsers_HierarchyAccess::appendProjectPrivateLineSqlFragment(
+			$currentUser,
+			'vtiger_crmentity.smownerid',
+			'vtiger_crmentity.smcreatorid'
+		);
+		return $listQuery;
+	}
+
+	/**
 	 * Function to get the list of listview links
 	 * @param <Array> $linkParams Parameters to be replaced in the link template
 	 * @return <Array> - an array of Vtiger_Link_Model instances

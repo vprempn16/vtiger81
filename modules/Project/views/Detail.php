@@ -16,6 +16,24 @@ class Project_Detail_View extends Vtiger_Detail_View {
         $this->exposeMethod('showChart');
 	}
 
+	function checkPermission(Vtiger_Request $request) {
+		parent::checkPermission($request);
+		$recordId = (int)$request->get('record');
+		if ($recordId) {
+			$partnerHelper = 'modules/BranchUsers/helpers/PartnerAccess.php';
+			if (file_exists($partnerHelper)) {
+				require_once $partnerHelper;
+				BranchUsers_PartnerAccess::assertRecordInPartnerScope($recordId);
+			}
+			$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+			if (file_exists($hierarchyHelper)) {
+				require_once $hierarchyHelper;
+				BranchUsers_HierarchyAccess::assertProjectInPrivateLineScope($recordId);
+			}
+		}
+		return true;
+	}
+
 	public function showModuleSummaryView($request) {
 		$recordId = $request->get('record');
 		$moduleName = $request->getModule();

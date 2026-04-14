@@ -21,8 +21,53 @@ class Project_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 			echo $this->invokeExposedMethod($mode, $request);
 			return;
 		} else {
+			$this->validatePrivateLineAssignment($request);
 			parent::process($request);
 		}
+	}
+
+	/**
+	 * Restrict Assigned To to the current user's private hierarchy line.
+	 * Prevents posting cross-line owners via crafted requests.
+	 *
+	 * @param Vtiger_Request $request
+	 * @return void
+	 * @throws AppException
+	 */
+	private function validatePrivateLineAssignment(Vtiger_Request $request) {
+		$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+		if (!file_exists($hierarchyHelper)) {
+			return;
+		}
+		require_once $hierarchyHelper;
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		if ($currentUserModel && $currentUserModel->isAdminUser()) {
+			return;
+		}
+		$currentUser = vglobal('current_user');
+		$creatorId = (int)$currentUser->id;
+		$ownerRaw = $request->get('assigned_user_id');
+		$ownerId = $this->normalizeUserId($ownerRaw);
+		if ($ownerId <= 0) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+		if (!BranchUsers_HierarchyAccess::isViewerAllowedInProjectLine($creatorId, $creatorId, $ownerId)) {
+			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+		}
+	}
+
+	/**
+	 * @param mixed $value
+	 * @return int
+	 */
+	private function normalizeUserId($value) {
+		$value = trim((string)$value);
+		if ($value === '') {
+			return 0;
+		}
+		$parts = explode('x', $value);
+		$value = end($parts);
+		return (int)$value;
 	}
 
 	function saveColor(Vtiger_Request $request) {

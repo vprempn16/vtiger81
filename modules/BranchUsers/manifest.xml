@@ -1,0 +1,34 @@
+<?xml version='1.0'?>
+<module>
+	<exporttime>2026-04-09 00:00:00</exporttime>
+	<name>BranchUsers</name>
+	<label>Branch Users</label>
+	<parent></parent>
+	<type>extension</type>
+	<version>1.0.0</version>
+	<dependencies>
+		<vtiger_version>8.3.0</vtiger_version>
+		<vtiger_max_version>8.*</vtiger_max_version>
+	</dependencies>
+	<license>
+		<inline><![CDATA[/*+**********************************************************************************
+ * BranchUsers - Custom module for partner/manager user administration.
+ * This module is intended to be installed via vtlib package manager.
+ ************************************************************************************/]]></inline>
+	</license>
+	<tables>
+		<table>
+			<name>vtiger_user_branch_map</name>
+			<sql><![CDATA[CREATE TABLE IF NOT EXISTS `vtiger_user_branch_map` (
+  `user_id` INT(11) NOT NULL,
+  `parent_user_id` INT(11) DEFAULT NULL,
+  `partner_id` INT(11) NOT NULL,
+  `status` TINYINT(1) NOT NULL DEFAULT 1,
+  PRIMARY KEY (`user_id`),
+  KEY `idx_partner` (`partner_id`),
+  KEY `idx_parent` (`parent_user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;]]></sql>
+		</table>
+	</tables>
+</module>
+
