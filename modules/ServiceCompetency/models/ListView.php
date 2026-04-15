@@ -693,6 +693,10 @@ if ($isSameMonth) {
     );
 }
 
+        // Calculate first month mandatory free days requirement based on actual month count
+$monthCount = max(1, $monthsDiff); // Use existing monthsDiff calculation
+$firstMonthMandatoryFreeDays = max(1, floor($manday / $monthCount)); // At least 1 day, qty/month_count
+
         $query = "
             SELECT sc.*, u.first_name, u.last_name,
                    {$monthlyWorkingDaysColumn} AS monthly_working_days,
@@ -718,6 +722,8 @@ if ($isSameMonth) {
               AND sc.consultantrole IN ($roleQMarks)
               -- Must have some free days from start date onwards to be eligible
               -- AND ({$startMonthPartialWorkingDays} - IFNULL(startMonthStats.start_month_tickets, 0)) >= 0
+              -- First month must have mandatory free days (qty/12)
+              AND ({$startMonthPartialWorkingDays} - IFNULL(startMonthStats.start_month_tickets, 0)) >= {$firstMonthMandatoryFreeDays}
               {$searchSql}
             HAVING total_free_days >= ?
         ";
@@ -743,6 +749,7 @@ if (!empty($allowedRoles)) {
 }
 		$params[] = $manday;
         $query = $adb->convert2Sql($query, $params);
+        //echo"<pre>";print_r($query);echo"</pre>";die;       
         return $query;
     }
      protected function buildWorkingDaysExpression($startDate, $endDate, $columnExpr = 'IFNULL(uwd.working_days, 0)') {

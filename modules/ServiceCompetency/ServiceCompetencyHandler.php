@@ -401,6 +401,8 @@ class ServiceCompetencyHandler{
                 $ticketModel->set('contact_id',$contactid);
                 $ticketModel->set('ticketstatus', 'Planned');
                 $ticketModel->set('ticketpriorities', 'Low');
+		$ticketModel->set('days', 1);
+		$ticketModel->set('hours', 8);
                 $ticketModel->set('cf_792', $ticketDate);
                 $ticketModel->set('cf_765', $servicename);
                 $ticketModel->set('ticketcategories',$servicecategory);
