@@ -139,6 +139,7 @@ abstract class Vtiger_Action_Controller extends Vtiger_Controller {
             if (!Users_Privileges_Model::isPermitted($moduleParameter, $permission['action'], $recordParameter)) {
                 throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
             }
+
         }
 
         return true;

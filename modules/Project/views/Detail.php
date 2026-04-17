@@ -20,6 +20,15 @@ class Project_Detail_View extends Vtiger_Detail_View {
 		parent::checkPermission($request);
 		$recordId = (int)$request->get('record');
 		if ($recordId) {
+			 // Check mention permissions first - if user was mentioned, allow view
+                        $mentionHelper = 'modules/Project/helpers/MentionPermissionHelper.php';
+                        if (file_exists($mentionHelper)) {
+                                require_once $mentionHelper;
+                                if (Project_MentionPermissionHelper::wasUserMentionedInProject($recordId)) {
+                                        // User was mentioned in project comments, allow view
+                                        return true;
+                                }
+                        }
 			$partnerHelper = 'modules/BranchUsers/helpers/PartnerAccess.php';
 			if (file_exists($partnerHelper)) {
 				require_once $partnerHelper;

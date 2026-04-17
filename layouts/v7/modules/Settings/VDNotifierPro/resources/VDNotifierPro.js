@@ -286,7 +286,7 @@ jQuery.Class('VDNotifierPro_Basic_Js', {
                                 }
                                 if (self.ajax > 0) {
                                     setTimeout(function () {
-                                        jQuery.pnotify(params2);
+                                        //jQuery.pnotify(params2);
                                         notifyCalcMessages++;
                                         if (notifyCalcMessages > 2) {
                                             self.displayRemoveAllPopups();
@@ -315,8 +315,8 @@ jQuery.Class('VDNotifierPro_Basic_Js', {
         if (document.getElementById('clearNotifierPopups')) {
             return;
         }
-        jQuery('nav.navbar').prepend("<div id='clearNotifierPopups' class='alert alert-block alert-success' style='cursor: pointer; position: absolute; z-index: 100; margin: 5px;'><span><strong>" + this.vdtranslate('LBL_CLEAR_ALL_ALERTS') + "</strong></span></div>");
-        this.clearNotifications();
+        //jQuery('nav.navbar').prepend("<div id='clearNotifierPopups' class='alert alert-block alert-success' style='cursor: pointer; position: absolute; z-index: 100; margin: 5px;'><span><strong>" + this.vdtranslate('LBL_CLEAR_ALL_ALERTS') + "</strong></span></div>");
+        //this.clearNotifications();
     },
     clearNotifications: function() {
         jQuery('#clearNotifierPopups').on('click', function() {

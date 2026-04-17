@@ -21,20 +21,18 @@ class CommentMentionSendMail extends VTEventHandler {
 				
 
 				if($isMailSendPermission){
-					$mail = new PHPMailer(true);
 					$commentcontent	= $data->get('commentcontent');
 					
 
-					//preg_match('/@(\w+)/', $content, $matches);
-					//preg_replace('/@(\w+)/', $message, $matches);
-					$username = $matches[1];
-					$words = explode(" ", $commentcontent);
-					$username = '';
-					foreach ($words as $word) {
-						if (substr($word, 0, 1) === "@") {
-							$username = substr($word, 1);
-							$usernames[] = $username;
-						}
+					// Use regex to find all @mentions in the comment
+					$usernames = array();
+					preg_match_all('/@([^\s]+)/', $commentcontent, $matches);
+					if (!empty($matches[1])) {
+						$usernames = $matches[1];
+						// Clean up usernames - remove any trailing punctuation
+						$usernames = array_map(function($username) {
+							return rtrim($username, '.,!?;:');
+						}, $usernames);
 					}
 					$related_to = $data->get('related_to');
 					$relatedmodule = getSalesEntityType($related_to);
@@ -44,13 +42,15 @@ class CommentMentionSendMail extends VTEventHandler {
 					foreach($usernames as $key => $username){
 						$userdetails = $this->getUserDetailsByUsername($username);
 						
-						// VDNotifierPro Notification logic
+						// VDNotifierPro Notification logic with hierarchy-based permissions
 						$userId = isset($userdetails['id']) ? $userdetails['id'] : false;
 						
-
 						if (file_exists('modules/VDNotifierPro/models/Record.php') && vtlib_isModuleActive('VDNotifierPro') && $userId) {
 							require_once 'modules/VDNotifierPro/models/Record.php';
 							
+						
+							$notificationTitle = "Mentioned you in a comment";
+					
 							$VDNotifier = new VDNotifierPro_Record_Model();
 							$VDNotifier->userid = $userId;
 							$VDNotifier->modulename = 'ModComments';
@@ -58,9 +58,8 @@ class CommentMentionSendMail extends VTEventHandler {
 							$VDNotifier->modiuserid = $current_user->id; 
 							$VDNotifier->action = 'MENTION';
 							$VDNotifier->modifiedtime = date('Y-m-d H:i:s');
-							$VDNotifier->title = "Mentioned you in a comment";
+							$VDNotifier->title = $notificationTitle;
 							$VDNotifier->link = "module=" . $relatedmodule . "&view=Detail&record=" . $related_to;
-							
 							$VDNotifier->save();
 						}
 
@@ -68,8 +67,10 @@ class CommentMentionSendMail extends VTEventHandler {
 						$isMailSendPermission = $this->isMailSendPermission('send_commentmail');
 						if($toEmail != '' && $isMailSendPermission){
 							$fullname = $userdetails['first_name'] . ' ' . $userdetails['last_name'];
-							$commentcontent = str_replace("@$username", "@$fullname", $commentcontent);
+							$commentcontent_with_name = str_replace("@$username", "@$fullname", $commentcontent);
+							
 							try{
+								$mail = new PHPMailer(true);
 								$mail->SMTPDebug = 2;
 								$mail->isSMTP();
 								$mail->Host  = 'smtp.gmail.com;';
@@ -82,7 +83,7 @@ class CommentMentionSendMail extends VTEventHandler {
 								$mail->addAddress($toEmail);
 								$mail->isHTML(true);
 								$mail->Subject = 'EmailFunction';
-								$mail->Body = $commentcontent;
+								$mail->Body = $commentcontent_with_name;
 								$mail->AltBody = 'Body in plain text for non-HTML mail clients';
 								$result = $mail->send();
 							}
@@ -92,6 +93,7 @@ class CommentMentionSendMail extends VTEventHandler {
 						}
 					}
 				}
+
 			}
 		}
 	}
