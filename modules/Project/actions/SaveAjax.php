@@ -49,11 +49,38 @@ class Project_SaveAjax_Action extends Vtiger_SaveAjax_Action {
 		$ownerRaw = $request->get('assigned_user_id');
 		$ownerId = $this->normalizeUserId($ownerRaw);
 		if ($ownerId <= 0) {
-			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
+			return;
+		}
+		if (!$this->shouldValidateOwnerChange($request, $ownerId)) {
+			return;
 		}
 		if (!BranchUsers_HierarchyAccess::isViewerAllowedInProjectLine($creatorId, $creatorId, $ownerId)) {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
 		}
+	}
+
+	/**
+	 * Validate only for create or when owner actually changes.
+	 *
+	 * @param Vtiger_Request $request
+	 * @param int $ownerId
+	 * @return bool
+	 */
+	private function shouldValidateOwnerChange(Vtiger_Request $request, $ownerId) {
+		$recordId = (int)$request->get('record');
+		if ($recordId <= 0) {
+			return true;
+		}
+		$db = PearDatabase::getInstance();
+		$r = $db->pquery(
+			"SELECT smownerid FROM vtiger_crmentity WHERE crmid = ? AND deleted = 0",
+			array($recordId)
+		);
+		if ($db->num_rows($r) < 1) {
+			return true;
+		}
+		$currentOwnerId = (int)$db->query_result($r, 0, 'smownerid');
+		return $currentOwnerId !== (int)$ownerId;
 	}
 
 	/**

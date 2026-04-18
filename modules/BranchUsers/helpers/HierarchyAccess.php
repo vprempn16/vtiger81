@@ -287,6 +287,21 @@ class BranchUsers_HierarchyAccess {
 	 * @return string
 	 */
 	public static function appendProjectPrivateLineSqlFragment($user, $ownerIdSql, $creatorIdSql) {
+		return self::appendPrivateLineSqlFragment($user, $ownerIdSql, $creatorIdSql);
+	}
+
+	/**
+	 * Hierarchy filter:
+	 * - viewer can access records created by descendants
+	 * - viewer can access records owned by descendants
+	 * (descendants list includes self)
+	 *
+	 * @param Users $user
+	 * @param string $ownerIdSql
+	 * @param string $creatorIdSql
+	 * @return string
+	 */
+	public static function appendPrivateLineSqlFragment($user, $ownerIdSql, $creatorIdSql) {
 		require 'user_privileges/user_privileges_' . $user->id . '.php';
 		if (!empty($is_admin) && $is_admin) {
 			return '';
@@ -295,19 +310,17 @@ class BranchUsers_HierarchyAccess {
 		if ($viewerId <= 0) {
 			return ' AND 1=0 ';
 		}
-		$ancestors = self::getAncestorChainUserIds($viewerId);
 		$descendants = self::getDescendantUserIds($viewerId);
-		if (empty($ancestors) || empty($descendants)) {
+		if (empty($descendants)) {
 			return ' AND 1=0 ';
 		}
-		$creatorList = self::toIntListSql($ancestors);
-		$ownerList = self::toIntListSql($descendants);
+		$descendantList = self::toIntListSql($descendants);
 		$ownerIdSql = trim((string)$ownerIdSql);
 		$creatorIdSql = trim((string)$creatorIdSql);
 		if ($ownerIdSql === '' || $creatorIdSql === '') {
 			return ' AND 1=0 ';
 		}
-		return " AND {$creatorIdSql} IN ({$creatorList}) AND {$ownerIdSql} IN ({$ownerList}) ";
+		return " AND ({$creatorIdSql} IN ({$descendantList}) OR {$ownerIdSql} IN ({$descendantList})) ";
 	}
 
 	/**
@@ -331,20 +344,30 @@ class BranchUsers_HierarchyAccess {
 	 * @param int $ownerUserId
 	 * @return bool
 	 */
-	public static function isViewerAllowedInProjectLine($viewerUserId, $creatorUserId, $ownerUserId) {
+	public static function isViewerAllowedByHierarchy($viewerUserId, $creatorUserId, $ownerUserId) {
 		$viewerUserId = (int)$viewerUserId;
 		$creatorUserId = (int)$creatorUserId;
 		$ownerUserId = (int)$ownerUserId;
-		if ($viewerUserId <= 0 || $creatorUserId <= 0 || $ownerUserId <= 0) {
+		if ($viewerUserId <= 0) {
 			return false;
 		}
-		// Project line exists only when creator is on the owner ancestor chain.
-		if (!self::isAncestorOrSelf($creatorUserId, $ownerUserId)) {
+		$descendants = self::getDescendantUserIds($viewerUserId);
+		if (empty($descendants)) {
 			return false;
 		}
-		// Viewer must sit between creator and owner (inclusive).
-		return self::isAncestorOrSelf($creatorUserId, $viewerUserId)
-			&& self::isAncestorOrSelf($viewerUserId, $ownerUserId);
+		return in_array($creatorUserId, $descendants, true) || in_array($ownerUserId, $descendants, true);
+	}
+
+	/**
+	 * Backward-compatible alias.
+	 *
+	 * @param int $viewerUserId
+	 * @param int $creatorUserId
+	 * @param int $ownerUserId
+	 * @return bool
+	 */
+	public static function isViewerAllowedInProjectLine($viewerUserId, $creatorUserId, $ownerUserId) {
+		return self::isViewerAllowedByHierarchy($viewerUserId, $creatorUserId, $ownerUserId);
 	}
 
 	/**
@@ -353,8 +376,17 @@ class BranchUsers_HierarchyAccess {
 	 * @throws AppException
 	 */
 	public static function assertProjectInPrivateLineScope($projectCrmId) {
-		$projectCrmId = (int)$projectCrmId;
-		if ($projectCrmId <= 0) {
+		self::assertCrmRecordInPrivateLineScope((int)$projectCrmId);
+	}
+
+	/**
+	 * @param int $crmid
+	 * @return void
+	 * @throws AppException
+	 */
+	public static function assertCrmRecordInPrivateLineScope($crmid) {
+		$crmid = (int)$crmid;
+		if ($crmid <= 0) {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
 		}
 		$currentUserModel = Users_Record_Model::getCurrentUserModel();
@@ -366,16 +398,33 @@ class BranchUsers_HierarchyAccess {
 		$db = PearDatabase::getInstance();
 		$r = $db->pquery(
 			"SELECT smcreatorid, smownerid FROM vtiger_crmentity WHERE crmid = ? AND deleted = 0",
-			array($projectCrmId)
+			array($crmid)
 		);
 		if ($db->num_rows($r) < 1) {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
 		}
 		$creatorId = (int)$db->query_result($r, 0, 'smcreatorid');
 		$ownerId = (int)$db->query_result($r, 0, 'smownerid');
-		if (!self::isViewerAllowedInProjectLine($viewerId, $creatorId, $ownerId)) {
+		if (!self::isViewerAllowedByHierarchy($viewerId, $creatorId, $ownerId)) {
 			throw new AppException(vtranslate('LBL_PERMISSION_DENIED'));
 		}
+	}
+
+	/**
+	 * @param int $ownerUserId
+	 * @param int|null $creatorUserId
+	 * @return bool
+	 */
+	public static function isAssignmentAllowedForCurrentUser($ownerUserId, $creatorUserId = null) {
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		if ($currentUserModel && $currentUserModel->isAdminUser()) {
+			return true;
+		}
+		$currentUser = vglobal('current_user');
+		$viewerId = (int)$currentUser->id;
+		$ownerUserId = (int)$ownerUserId;
+		$creatorId = ($creatorUserId === null) ? $viewerId : (int)$creatorUserId;
+		return self::isViewerAllowedByHierarchy($viewerId, $creatorId, $ownerUserId);
 	}
 
 	/**

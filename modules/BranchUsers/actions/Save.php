@@ -32,6 +32,7 @@ class BranchUsers_Save_Action extends Vtiger_Action_Controller {
 		$currentUserModel = Users_Record_Model::getCurrentUserModel();
 		$isAdmin = ($currentUserModel && $currentUserModel->isAdminUser());
 
+		
 		require_once 'modules/BranchUsers/helpers/PartnerAccess.php';
 		require_once 'modules/BranchUsers/helpers/HierarchyAccess.php';
 
@@ -110,16 +111,15 @@ class BranchUsers_Save_Action extends Vtiger_Action_Controller {
 		}
 
 		$creatorUserId = ($backupUser && !empty($backupUser->id)) ? (int)$backupUser->id : (int)$currentUser->id;
+		
 		if (!$recordId && $savedUserId > 0) {
 			// Keep real creator (operator) even though save runs in admin context.
 			$dbCreator = PearDatabase::getInstance();
-			$dbCreator->pquery(
-				"UPDATE vtiger_crmentity SET smcreatorid = ? WHERE crmid = ?",
-				array($creatorUserId, (int)$savedUserId)
-			);
+			//$dbCreator->pquery("UPDATE vtiger_crmentity SET smcreatorid = ? WHERE crmid = ?",array($creatorUserId, (int)$savedUserId));
 		}
 
 		// Maintain mapping: tolerate deployments where partner_id column is removed.
+		
 		if (!$isAdmin) {
 			$db = PearDatabase::getInstance();
 			$hasPartnerColumn = BranchUsers_HierarchyAccess::mapHasPartnerColumn($db);
@@ -139,25 +139,25 @@ class BranchUsers_Save_Action extends Vtiger_Action_Controller {
 			if ($db->num_rows($exists) > 0) {
 				if ($hasPartnerColumn) {
 					$db->pquery(
-						"UPDATE vtiger_user_branch_map SET parent_user_id = ?, partner_id = ? WHERE user_id = ?",
-						array((int)$parentUserId, $partnerId, (int)$savedUserId)
+						"UPDATE vtiger_user_branch_map SET parent_user_id = ?, partner_id = ?, creatorid = ? WHERE user_id = ?",
+						array((int)$parentUserId, $partnerId, $creatorUserId, (int)$savedUserId)
 					);
 				} else {
 					$db->pquery(
-						"UPDATE vtiger_user_branch_map SET parent_user_id = ? WHERE user_id = ?",
-						array((int)$parentUserId, (int)$savedUserId)
+						"UPDATE vtiger_user_branch_map SET parent_user_id = ?, creatorid = ? WHERE user_id = ?",
+						array((int)$parentUserId, $creatorUserId, (int)$savedUserId)
 					);
 				}
 			} else {
 				if ($hasPartnerColumn) {
 					$db->pquery(
-						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id, partner_id) VALUES (?, ?, ?)",
-						array((int)$savedUserId, (int)$parentUserId, $partnerId)
+						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id, partner_id, creatorid) VALUES (?, ?, ?, ?)",
+						array((int)$savedUserId, (int)$parentUserId, $partnerId, $creatorUserId)
 					);
 				} else {
 					$db->pquery(
-						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id) VALUES (?, ?)",
-						array((int)$savedUserId, (int)$parentUserId)
+						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id, creatorid) VALUES (?, ?, ?)",
+						array((int)$savedUserId, (int)$parentUserId, $creatorUserId)
 					);
 				}
 			}
@@ -174,30 +174,29 @@ class BranchUsers_Save_Action extends Vtiger_Action_Controller {
 			if ($db->num_rows($exists) > 0) {
 				if ($hasPartnerColumn) {
 					$db->pquery(
-						"UPDATE vtiger_user_branch_map SET parent_user_id = ?, partner_id = ? WHERE user_id = ?",
-						array((int)$parentUserIdFromForm, $partnerId, (int)$savedUserId)
+						"UPDATE vtiger_user_branch_map SET parent_user_id = ?, partner_id = ?, creatorid = ? WHERE user_id = ?",
+						array((int)$parentUserIdFromForm, $partnerId, $creatorUserId, (int)$savedUserId)
 					);
 				} else {
 					$db->pquery(
-						"UPDATE vtiger_user_branch_map SET parent_user_id = ? WHERE user_id = ?",
-						array((int)$parentUserIdFromForm, (int)$savedUserId)
+						"UPDATE vtiger_user_branch_map SET parent_user_id = ?, creatorid = ? WHERE user_id = ?",
+						array((int)$parentUserIdFromForm, $creatorUserId, (int)$savedUserId)
 					);
 				}
 			} else {
 				if ($hasPartnerColumn) {
 					$db->pquery(
-						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id, partner_id) VALUES (?, ?, ?)",
-						array((int)$savedUserId, (int)$parentUserIdFromForm, $partnerId)
+						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id, partner_id, creatorid) VALUES (?, ?, ?, ?)",
+						array((int)$savedUserId, (int)$parentUserIdFromForm, $partnerId, $creatorUserId)
 					);
 				} else {
 					$db->pquery(
-						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id) VALUES (?, ?)",
-						array((int)$savedUserId, (int)$parentUserIdFromForm)
+						"INSERT INTO vtiger_user_branch_map (user_id, parent_user_id, creatorid) VALUES (?, ?, ?)",
+						array((int)$savedUserId, (int)$parentUserIdFromForm, $creatorUserId)
 					);
 				}
 			}
 		}
-
 		$this->emitSuccessResponse($request, array('id' => $savedUserId));
 	}
 

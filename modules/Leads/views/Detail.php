@@ -11,4 +11,16 @@
 
 class Leads_Detail_View extends Accounts_Detail_View {
 
+	public function checkPermission(Vtiger_Request $request) {
+		parent::checkPermission($request);
+		$recordId = (int)$request->get('record');
+		if ($recordId > 0) {
+			$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+			if (file_exists($hierarchyHelper)) {
+				require_once $hierarchyHelper;
+				BranchUsers_HierarchyAccess::assertCrmRecordInPrivateLineScope($recordId);
+			}
+		}
+		return true;
+	}
 }

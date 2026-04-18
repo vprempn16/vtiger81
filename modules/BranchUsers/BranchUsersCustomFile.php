@@ -47,6 +47,7 @@ class BranchUsersCustomFile {
 			`parent_user_id` INT(11) DEFAULT NULL,
 			`partner_id` INT(11) NOT NULL,
 			`status` TINYINT(1) NOT NULL DEFAULT 1,
+			`creatorid` int NOT NULL,
 			PRIMARY KEY (`user_id`),
 			KEY `idx_partner` (`partner_id`),
 			KEY `idx_parent` (`parent_user_id`)

@@ -27,9 +27,6 @@ class Project_ListView_Model extends Vtiger_ListView_Model {
 		}
 		require_once $hierarchyHelper;
 		$currentUser = vglobal('current_user');
-		if (!$currentUser || empty($currentUser->id)) {
-			return $listQuery . ' AND 1=0 ';
-		}
 		$listQuery .= BranchUsers_HierarchyAccess::appendProjectPrivateLineSqlFragment(
 			$currentUser,
 			'vtiger_crmentity.smownerid',

@@ -56,13 +56,14 @@
 						<th><a class="listViewContentHeaderValues" href="index.php?module={$MODULE}&view=List&search_key={$SEARCH_KEY|escape:'url'}&page=1&pageLimit={$PAGELIMIT}&orderby=last_name&sortorder={if $ORDERBY eq 'last_name' and $SORTORDER eq 'ASC'}DESC{else}ASC{/if}">{vtranslate('Last Name', 'Users')}</a></th>
 						<th><a class="listViewContentHeaderValues" href="index.php?module={$MODULE}&view=List&search_key={$SEARCH_KEY|escape:'url'}&page=1&pageLimit={$PAGELIMIT}&orderby=email1&sortorder={if $ORDERBY eq 'email1' and $SORTORDER eq 'ASC'}DESC{else}ASC{/if}">{vtranslate('Email', 'Users')}</a></th>
 						<th><a class="listViewContentHeaderValues" href="index.php?module={$MODULE}&view=List&search_key={$SEARCH_KEY|escape:'url'}&page=1&pageLimit={$PAGELIMIT}&orderby=role_name&sortorder={if $ORDERBY eq 'role_name' and $SORTORDER eq 'ASC'}DESC{else}ASC{/if}">{vtranslate('Role', 'Users')}</a></th>
+						<th>{vtranslate('Parent User', 'BranchUsers')}</th>
 						<th><a class="listViewContentHeaderValues" href="index.php?module={$MODULE}&view=List&search_key={$SEARCH_KEY|escape:'url'}&page=1&pageLimit={$PAGELIMIT}&orderby=status&sortorder={if $ORDERBY eq 'status' and $SORTORDER eq 'ASC'}DESC{else}ASC{/if}">{vtranslate('Status', 'Users')}</a></th>
 					</tr>
 				</thead>
 				<tbody class="overflow-y">
 					{if empty($USERS)}
 						<tr class="emptyRecordsDiv">
-							<td colspan="7">
+							<td colspan="8">
 								<div class="emptyRecordsContent">{vtranslate('LBL_NO_RECORDS_FOUND', 'Vtiger')}</div>
 							</td>
 						</tr>
@@ -109,6 +110,17 @@
 								<td class="listViewEntryValue"><span class="fieldValue"><span class="value">{$ROW.last_name}</span></span></td>
 								<td class="listViewEntryValue"><span class="fieldValue"><span class="value">{$ROW.email1}</span></span></td>
 								<td class="listViewEntryValue"><span class="fieldValue"><span class="value">{$ROW.role_name}</span></span></td>
+								<td class="listViewEntryValue">
+									<span class="fieldValue">
+										<span class="value">
+											{if $ROW.parent_user_id > 0}
+												{getUserFullName($ROW.parent_user_id)}
+											{else}
+												-
+											{/if}
+										</span>
+									</span>
+								</td>
 								<td class="listViewEntryValue"><span class="fieldValue"><span class="value">{$ROW.status}</span></span></td>
 							</tr>
 						{/foreach}

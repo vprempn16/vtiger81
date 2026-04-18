@@ -15,6 +15,19 @@ class Contacts_Detail_View extends Accounts_Detail_View {
 		parent::__construct();
 	}
 
+	public function checkPermission(Vtiger_Request $request) {
+		parent::checkPermission($request);
+		$recordId = (int)$request->get('record');
+		if ($recordId > 0) {
+			$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+			if (file_exists($hierarchyHelper)) {
+				require_once $hierarchyHelper;
+				BranchUsers_HierarchyAccess::assertCrmRecordInPrivateLineScope($recordId);
+			}
+		}
+		return true;
+	}
+
 	public function showModuleDetailView(Vtiger_Request $request) {
 		$recordId = $request->get('record');
 		$moduleName = $request->getModule();

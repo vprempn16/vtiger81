@@ -70,6 +70,10 @@ class Project_Edit_View extends Vtiger_Edit_View {
 		$viewer->assign('PICKIST_DEPENDENCY_DATASOURCE', Vtiger_Functions::jsonEncode($picklistDependencyDatasource));
 		$viewer->assign('RECORD_STRUCTURE_MODEL', $recordStructureInstance);
 		$viewer->assign('RECORD_STRUCTURE', $recordStructureInstance->getStructure());
+		
+		// Also assign filtered users directly for template use
+		$filteredUsers = $this->getFilteredAssignedUsers($recordModel);
+		$viewer->assign('FILTERED_ASSIGNED_USERS', $filteredUsers);
 		$viewer->assign('MODULE', $moduleName);
 		$viewer->assign('CURRENTDATE', date('Y-n-j'));
 		$viewer->assign('USER_MODEL', Users_Record_Model::getCurrentUserModel());
@@ -95,53 +99,140 @@ class Project_Edit_View extends Vtiger_Edit_View {
 	}
 
 	/**
-	 * Show only hierarchy-allowed users in Assigned To list for Project edit/create.
+	 * Show only branch users in Assigned To list for Project edit/create based on creatorid logic.
 	 *
 	 * @param Vtiger_RecordStructure_Model $recordStructureInstance
 	 * @param Vtiger_Record_Model $recordModel
 	 * @return void
 	 */
 	private function filterAssignedUserFieldByHierarchy($recordStructureInstance, $recordModel) {
-		$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
-		if (!file_exists($hierarchyHelper)) {
+		// Debug: HTML comment to see if method is called
+		// echo "<!-- DEBUG: Project Edit filterAssignedUserFieldByHierarchy called -->";
+		
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		if (!$currentUserModel) {
+			// echo "<!-- DEBUG: No current user model found -->";
 			return;
 		}
-		require_once $hierarchyHelper;
+		
+		// Check if user is admin - if admin, show all users
+		if ($currentUserModel->isAdminUser()) {
+			// echo "<!-- DEBUG: User is admin, returning to show all users -->";
+			return; // Let default behavior show all users for admin
+		}
+		
 		$currentUser = vglobal('current_user');
 		$currentUserId = (int)$currentUser->id;
 		if ($currentUserId <= 0) {
 			return;
 		}
-		$allowedUserIds = BranchUsers_HierarchyAccess::getDescendantUserIds($currentUserId);
-		$allowedUserIds[] = $currentUserId;
+		
+		// Use creatorid logic from vtiger_user_branch_map
+		$db = PearDatabase::getInstance();
+		$st = '';
+		$result = $db->pquery(
+			"SELECT DISTINCT user_id FROM vtiger_user_branch_map 
+			 WHERE (parent_user_id = ? OR creatorid = ?){$st}",
+			array($currentUserId, $currentUserId)
+		);
+		
+		$allowedUserIds = array($currentUserId); // Always include current user
+		$n = $db->num_rows($result);
+		for ($i = 0; $i < $n; $i++) {
+			$userId = (int)$db->query_result($result, $i, 'user_id');
+			if ($userId > 0) {
+				$allowedUserIds[] = $userId;
+			}
+		}
 
 		$currentOwnerId = (int)$recordModel->get('assigned_user_id');
-		if ($currentOwnerId > 0) {
+		if ($currentOwnerId > 0 && !in_array($currentOwnerId, $allowedUserIds)) {
 			$allowedUserIds[] = $currentOwnerId;
 		}
+		
 		$allowedUserIds = array_values(array_unique(array_map('intval', $allowedUserIds)));
 		$allowedUsers = $this->getActiveUsersByIds($allowedUserIds);
 		if (empty($allowedUsers)) {
 			$allowedUsers = array($currentUserId => trim(getUserFullName($currentUserId)));
 		}
 
+		// Debug: HTML comments to see what users are found
+		// "<!-- DEBUG: Allowed users: " . htmlspecialchars(print_r($allowedUsers, true)) . " -->";
+
 		$usersLabelKey = vtranslate('LBL_USERS');
 		$groupsLabelKey = vtranslate('LBL_GROUPS');
+		
 		$structure = $recordStructureInstance->getStructure();
 		foreach ($structure as $blockLabel => $fields) {
 			foreach ($fields as $fieldModel) {
 				if ((string)$fieldModel->getName() !== 'assigned_user_id') {
 					continue;
 				}
+				
 				$fieldInfo = $fieldModel->getFieldInfo();
+				//echo "<!-- DEBUG: Original field info: " . htmlspecialchars(print_r($fieldInfo, true)) . " -->";
+				
 				$fieldInfo['picklistvalues'] = array(
 					$usersLabelKey => $allowedUsers,
 					$groupsLabelKey => array()
 				);
+				
+				
+				//echo "<!-- DEBUG: Updated field info: " . htmlspecialchars(print_r($fieldInfo, true)) . " -->";
 				$fieldModel->setFieldInfo($fieldInfo);
 				$fieldModel->set('fieldvalue', $currentOwnerId > 0 ? $currentOwnerId : $currentUserId);
 			}
 		}
+	}
+
+	/**
+	 * Get filtered assigned users based on creatorid logic
+	 *
+	 * @param Vtiger_Record_Model $recordModel
+	 * @return array<int,string>
+	 */
+	private function getFilteredAssignedUsers($recordModel) {
+		$currentUserModel = Users_Record_Model::getCurrentUserModel();
+		if (!$currentUserModel) {
+			return array();
+		}
+		
+		// Check if user is admin - if admin, return empty to use default behavior
+		if ($currentUserModel->isAdminUser()) {
+			return array();
+		}
+		
+		$currentUser = vglobal('current_user');
+		$currentUserId = (int)$currentUser->id;
+		if ($currentUserId <= 0) {
+			return array();
+		}
+		
+		// Use creatorid logic from vtiger_user_branch_map
+		$db = PearDatabase::getInstance();
+		$st = '';
+		$result = $db->pquery(
+			"SELECT DISTINCT user_id FROM vtiger_user_branch_map 
+			 WHERE (parent_user_id = ? OR creatorid = ?){$st}",
+			array($currentUserId, $currentUserId)
+		);
+		
+		$allowedUserIds = array($currentUserId); // Always include current user
+		$n = $db->num_rows($result);
+		for ($i = 0; $i < $n; $i++) {
+			$userId = (int)$db->query_result($result, $i, 'user_id');
+			if ($userId > 0) {
+				$allowedUserIds[] = $userId;
+			}
+		}
+
+		$currentOwnerId = (int)$recordModel->get('assigned_user_id');
+		if ($currentOwnerId > 0 && !in_array($currentOwnerId, $allowedUserIds)) {
+			$allowedUserIds[] = $currentOwnerId;
+		}
+		
+		$allowedUserIds = array_values(array_unique(array_map('intval', $allowedUserIds)));
+		return $this->getActiveUsersByIds($allowedUserIds);
 	}
 
 	/**

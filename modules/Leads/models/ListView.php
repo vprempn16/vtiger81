@@ -10,6 +10,22 @@
 
 class Leads_ListView_Model extends Vtiger_ListView_Model {
 
+	public function getQuery() {
+		$listQuery = parent::getQuery();
+		$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+		if (!file_exists($hierarchyHelper)) {
+			return $listQuery;
+		}
+		require_once $hierarchyHelper;
+		$currentUser = vglobal('current_user');
+		$listQuery .= BranchUsers_HierarchyAccess::appendPrivateLineSqlFragment(
+			$currentUser,
+			'vtiger_crmentity.smownerid',
+			'vtiger_crmentity.smcreatorid'
+		);
+		return $listQuery;
+	}
+
 	/**
 	 * Function to get the list of Mass actions for the module
 	 * @param <Array> $linkParams
