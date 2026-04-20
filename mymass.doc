@@ -1,0 +1,171 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta charset="utf-8">
+    <title>Vtiger CRM Master Module Installation Instructions</title>
+    <style>
+        body { font-family: Calibri, sans-serif; }
+        h1 { color: #2e74b5; font-size: 24pt; }
+        h2 { color: #2e74b5; font-size: 18pt; border-bottom: 1px solid #ccc; padding-bottom: 5px; margin-top: 30px;}
+        h3 { color: #1f4d78; font-size: 14pt; }
+        .screenshot-placeholder {
+            border: 2px dashed #888;
+            background-color: #f2f2f2;
+            padding: 30px;
+            text-align: center;
+            font-weight: bold;
+            color: #555;
+            margin: 20px 0;
+            width: 100%;
+        }
+        .code { background-color: #f1f1f1; padding: 10px; font-family: Consolas, monospace; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+
+<h1>Vtiger CRM Master Module Installation Instructions</h1>
+<p>This document provides complete configuration instructions for your system after installing the <b>MyMassInstaller</b>.</p>
+<p>The <code>MyMassInstaller.zip</code> package will automatically extract and install four underlying modules simultaneously:</p>
+<ol>
+    <li><code>PromotionalMaterial</code></li>
+    <li><code>VDNotifierPro</code></li>
+    <li><code>VTAtomCommentsMentions</code></li>
+    <li><code>BranchUsers</code></li>
+</ol>
+
+<h2>PART 1: Module Installation</h2>
+
+<h3>Step 1: Uploading the Master Installer</h3>
+<ol>
+    <li>Navigate to <b>Settings</b> (gear icon) &gt; <b>Module Manager</b></li>
+    <li>Click the <b>Import Module</b> button</li>
+    <li>Upload the <code>MyMassInstaller.zip</code> file</li>
+    <li>Follow the installation wizard and click finish.</li>
+    <li><i>Note: Behind the scenes, the installer will unpack and install your 4 modules, and then it will cleanly delete itself from the system!</i></li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Module Manager Import Screen capturing the upload ]</div>
+
+<h2>PART 2: Core Configuration</h2>
+
+<h3>Step 2: Outgoing Server Configuration</h3>
+<ol>
+    <li>Navigate to <b>Settings &gt; Outgoing Server</b></li>
+    <li>Configure SMTP settings (Server name, Port, Username, Password, and Authentication method)</li>
+    <li>Test email configuration with <b>Send Test Email</b></li>
+    <li>Ensure "Default Outgoing Server" is selected</li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Outgoing Server Settings ]</div>
+
+<h3>Step 3: Partner Role Configuration</h3>
+<ol>
+    <li>Navigate to <b>Settings &gt; Roles</b></li>
+    <li>Create the "Partner" role.</li>
+    <li><i>Note: There is no need to update any backend files. The system will automatically detect the correct role ID using the "Partner" role name.</i></li>
+    <li>Disable the necessary modules precisely as shown in the provided screenshot below.</li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Partner Role Configuration Setup ]</div>
+
+<h2>PART 3: Automation &amp; Permissions</h2>
+
+<h3>Step 4: Email Template Configuration</h3>
+<ol>
+    <li>Navigate to <b>Settings &gt; Templates</b></li>
+    <li>Create a new email template:
+        <ul>
+            <li><b>Template Name</b>: <code>PMPartnerEmailTemplate</code></li>
+            <li><b>Module</b>: Users</li>
+            <li><b>Subject</b>: New Promotional Material Available: <code>###PM_RECORD_TITLE###</code></li>
+        </ul>
+    </li>
+    <li><b>Body</b>:
+        <div class="code">
+            Dear Partner,<br><br>
+            A new promotional material has been published:<br><br>
+            Title: ###PM_RECORD_TITLE###<br>
+            View Details: ###PM_DETAIL_URL###<br><br>
+            Please log in to view and download the materials.
+        </div>
+    </li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Email Template Configuration ]</div>
+
+<h3>Step 5: Workflow Creation for Partner Notifications</h3>
+<ol>
+    <li>Navigate to <b>Settings &gt; Workflows</b></li>
+    <li>Create a new workflow for <code>PromotionalMaterial</code>:
+        <ul>
+            <li><b>Condition</b>: When Promotional Status equals "Published"</li>
+        </ul>
+    </li>
+    <li>Add Two <b>Invoke Custom Function</b> tasks:
+        <ul>
+            <li><b>Task 1</b>: <code>PMNotifyPartners</code> (sends real-time notifications via VDNotifierPro)</li>
+            <li><b>Task 2</b>: <code>PMSendPartnerEmail</code> (sends previously created email template to Partners)</li>
+        </ul>
+    </li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Workflow Settings and Conditions ]</div>
+
+<h3>Step 6: Partner Profile Permissions</h3>
+<ol>
+    <li>Navigate to <b>Settings &gt; Profiles</b></li>
+    <li>Configure permissions specifically for Partner profiles:
+        <ul>
+            <li><b>Allow</b>: PromotionalMaterial module access</li>
+            <li><b>Allow</b>: DetailView (to view published materials)</li>
+            <li><b>Allow</b>: Download attachments</li>
+            <li><b>Deny</b>: CreateView, EditView, Delete</li>
+        </ul>
+    </li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Profile Module Permissions ]</div>
+
+<h3>Step 7: Sharing Rules Configuration</h3>
+<ol>
+    <li>Navigate to <b>Settings &gt; Sharing Rules</b></li>
+    <li>Establish the exact sharing access rules for the Partner Role regarding the <code>PromotionalMaterial</code> and <code>BranchUsers</code> modules.</li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Sharing Rules Configuration ]</div>
+
+<h2>PART 4: Branch &amp; Project Setup (BranchUsers Module)</h2>
+
+<h3>Step 8: Branch Configuration</h3>
+<ol>
+    <li>Navigate to the newly installed <b>BranchUsers</b> module</li>
+    <li>Create branches (Branch name, code, manager assignment, and location)</li>
+    <li>Navigate to <b>User Management</b> and assign users to the appropriate branches</li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Branch Configuration &amp; User Assignment ]</div>
+
+<h3>Step 9: Project Module Enhancement Setup</h3>
+<ol>
+    <li>Extract the <code>ProjectOfBranchUsers.zip</code> file (if not already done) to enhance the standard Project module.</li>
+    <li>Run any necessary SQL scripts included to establish the mapping.</li>
+    <li>Test the Project creation by ensuring the new Branch dropdown assignment flows correctly.</li>
+</ol>
+<div class="screenshot-placeholder">[ INSERT SCREENSHOT HERE: Modified Project Module / Database Setup ]</div>
+
+<h2>POST-INSTALLATION CHECKLIST AND TESTING</h2>
+
+<h3>Admin Testing</h3>
+<ul>
+    <li>[ ] Create a test promotional material and set status to "Published"</li>
+    <li>[ ] Verify that the custom workflows trigger the VDNotifierPro alert &amp; Email</li>
+    <li>[ ] Set up test branches and assign them to test users</li>
+</ul>
+
+<h3>Partner Testing</h3>
+<ul>
+    <li>[ ] Log in as a Partner user</li>
+    <li>[ ] Verify that ONLY published materials appear in the list view</li>
+    <li>[ ] Verify that Create/Edit/Delete actions are properly blocked by Profile permissions</li>
+</ul>
+
+<h3>Support &amp; Maintenance</h3>
+<ul>
+    <li>If workflows don't execute: Clear Vtiger cache, re-register event handlers</li>
+    <li>Legacy event handler support: Enable with <code>PM_PROMOTIONAL_USE_LEGACY_EVENT_NOTIFIER = true</code> in <code>config.inc.php</code></li>
+</ul>
+
+</body>
+</html>
+
