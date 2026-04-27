@@ -24,15 +24,15 @@ class Vtiger_MentionedUsers_Action extends Vtiger_Action_Controller {
         $commentId = $request->get('crmid');
         $commentRecord = Vtiger_Record_Model::getInstanceById($commentId, Vtiger_Module_Model::getInstance('ModComments'));
         $commentOwnerId = $commentRecord->get('creator');
-        $commentOwnerName = Users_Record_Model::getInstanceById($commentOwnerId, Users_Module_Model::getInstance('Users'))->getName();
-        $commentOwnerName = str_replace(' ', '',$commentOwnerName);
+        $commentOwnerUser = Users_Record_Model::getInstanceById($commentOwnerId, Users_Module_Model::getInstance('Users'));
+        $commentOwnerName = $commentOwnerUser->get('user_name');
         $currentUser = Users_Record_Model::getCurrentUserModel();
         $currentUserId = $currentUser->getId();
         
         if($commentOwnerId !== $currentUserId) {
             $mentionedUsers[] = decode_html($commentOwnerName);
         }
-        $currentUserName = decode_html(str_replace(' ', '',$currentUser->getName()));
+        $currentUserName = decode_html($currentUser->get('user_name'));
         //Unset current user from the mentioned users
         if(($key = array_search(strtolower($currentUserName), $mentionedUsers)) !== false) {
             unset($mentionedUsers[$key]);

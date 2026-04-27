@@ -15,6 +15,16 @@ class Leads_Detail_View extends Accounts_Detail_View {
 		parent::checkPermission($request);
 		$recordId = (int)$request->get('record');
 		if ($recordId > 0) {
+			 // Check mention permissions first - if user was mentioned, allow view
+                        $mentionHelper = 'modules/Project/helpers/MentionPermissionHelper.php';
+                        if (file_exists($mentionHelper)) {
+                                require_once $mentionHelper;
+                                if (Project_MentionPermissionHelper::wasUserMentionedInProject($recordId)) {
+                                        // User was mentioned in project comments, allow view
+                                        return true;
+                                }
+                        }
+
 			$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
 			if (file_exists($hierarchyHelper)) {
 				require_once $hierarchyHelper;

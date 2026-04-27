@@ -11,7 +11,8 @@
 /**
  * ListView Model Class for Project module
  */
-class Project_ListView_Model extends Vtiger_ListView_Model {
+class Project_ListView_Model extends Vtiger_ListView_Model
+{
 
 	/**
 	 * Apply strict private-line restriction at ListView query level.
@@ -19,19 +20,43 @@ class Project_ListView_Model extends Vtiger_ListView_Model {
 	 *
 	 * @return string
 	 */
-	public function getQuery() {
+	public function getQuery()
+	{
 		$listQuery = parent::getQuery();
+
 		$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
 		if (!file_exists($hierarchyHelper)) {
 			return $listQuery;
 		}
 		require_once $hierarchyHelper;
 		$currentUser = vglobal('current_user');
-		$listQuery .= BranchUsers_HierarchyAccess::appendProjectPrivateLineSqlFragment(
+
+		$hierarchyFragment = BranchUsers_HierarchyAccess::appendProjectPrivateLineSqlFragment(
 			$currentUser,
 			'vtiger_crmentity.smownerid',
 			'vtiger_crmentity.smcreatorid'
 		);
+
+
+		// If hierarchy restriction exists, we need to allow mentions as an exception
+		if (!empty($hierarchyFragment)) {
+			$mentionHelper = 'modules/Project/helpers/MentionPermissionHelper.php';
+			if (file_exists($mentionHelper)) {
+				require_once $mentionHelper;
+				$mentionedProjects = Project_MentionPermissionHelper::getMentionedProjects($currentUser->id);
+				if (!empty($mentionedProjects)) {
+					$mentionIds = implode(',', $mentionedProjects);
+					// Strip the leading " AND " from hierarchy fragment to wrap it in our OR
+					$hierarchyCondition = preg_replace('/^\s*AND\s+/i', '', $hierarchyFragment);
+					$listQuery .= " AND ( $hierarchyCondition OR vtiger_crmentity.crmid IN ($mentionIds) ) ";
+				} else {
+					$listQuery .= $hierarchyFragment;
+				}
+			} else {
+				$listQuery .= $hierarchyFragment;
+			}
+		}
+
 		return $listQuery;
 	}
 
@@ -40,25 +65,26 @@ class Project_ListView_Model extends Vtiger_ListView_Model {
 	 * @param <Array> $linkParams Parameters to be replaced in the link template
 	 * @return <Array> - an array of Vtiger_Link_Model instances
 	 */
-	public function getListViewLinks($linkParams) {
-        $userPrivilegesModel = Users_Privileges_Model::getCurrentUserPrivilegesModel();
+	public function getListViewLinks($linkParams)
+	{
+		$userPrivilegesModel = Users_Privileges_Model::getCurrentUserPrivilegesModel();
 		$links = parent::getListViewLinks($linkParams);
-        $quickLinks = array();
-        
-        $projectTaskInstance = Vtiger_Module_Model::getInstance('ProjectTask');
-        if($userPrivilegesModel->hasModulePermission($projectTaskInstance->getId())) {
-            $quickLinks[] = array(
-                                'linktype' => 'LISTVIEWQUICK',
-                                'linklabel' => 'Tasks List',
-                                'linkurl' => $this->getModule()->getDefaultUrl(),
-                                'linkicon' => ''
-                            );
-        }
+		$quickLinks = array();
 
-        foreach($quickLinks as $quickLink) {
-            $links['LISTVIEWQUICK'][] = Vtiger_Link_Model::getInstanceFromValues($quickLink);
-        }
-        
+		$projectTaskInstance = Vtiger_Module_Model::getInstance('ProjectTask');
+		if ($userPrivilegesModel->hasModulePermission($projectTaskInstance->getId())) {
+			$quickLinks[] = array(
+				'linktype' => 'LISTVIEWQUICK',
+				'linklabel' => 'Tasks List',
+				'linkurl' => $this->getModule()->getDefaultUrl(),
+				'linkicon' => ''
+			);
+		}
+
+		foreach ($quickLinks as $quickLink) {
+			$links['LISTVIEWQUICK'][] = Vtiger_Link_Model::getInstanceFromValues($quickLink);
+		}
+
 		return $links;
 	}
 

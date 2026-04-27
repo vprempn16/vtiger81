@@ -4,7 +4,11 @@
 {strip}
 {assign var="FIELD_INFO" value=$FIELD_MODEL->getFieldInfo()}
 {if $FIELD_MODEL->get('uitype') eq '53'}
-	{assign var=ALL_ACTIVEUSER_LIST value=$FIELD_INFO['picklistvalues'][vtranslate('LBL_USERS')]}
+	{if !empty($FILTERED_ASSIGNED_USERS)}
+                {assign var=ALL_ACTIVEUSER_LIST value=$FILTERED_ASSIGNED_USERS}
+        {else}
+                {assign var=ALL_ACTIVEUSER_LIST value=$FIELD_INFO['picklistvalues'][vtranslate('LBL_USERS')]}
+        {/if}
 	{assign var=ALL_ACTIVEGROUP_LIST value=$FIELD_INFO['picklistvalues'][vtranslate('LBL_GROUPS')]}
 	{assign var=ASSIGNED_USER_ID value=$FIELD_MODEL->get('name')}
 	{assign var=CURRENT_USER_ID value=$USER_MODEL->get('id')}

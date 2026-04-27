@@ -127,23 +127,10 @@ class Project_Edit_View extends Vtiger_Edit_View {
 			return;
 		}
 		
-		// Use creatorid logic from vtiger_user_branch_map
-		$db = PearDatabase::getInstance();
-		$st = '';
-		$result = $db->pquery(
-			"SELECT DISTINCT user_id FROM vtiger_user_branch_map 
-			 WHERE (parent_user_id = ? OR creatorid = ?){$st}",
-			array($currentUserId, $currentUserId)
-		);
-		
-		$allowedUserIds = array($currentUserId); // Always include current user
-		$n = $db->num_rows($result);
-		for ($i = 0; $i < $n; $i++) {
-			$userId = (int)$db->query_result($result, $i, 'user_id');
-			if ($userId > 0) {
-				$allowedUserIds[] = $userId;
-			}
-		}
+		// Use branch hierarchy logic to get both lower and higher level users in same branch
+		require_once 'modules/BranchUsers/models/UserList.php';
+		$branchUserIds = BranchUsers_UserList_Model::getBranchHierarchyUsers($currentUserId);
+		$allowedUserIds = array_merge(array($currentUserId), $branchUserIds); // Include current user in assigned to options
 
 		$currentOwnerId = (int)$recordModel->get('assigned_user_id');
 		if ($currentOwnerId > 0 && !in_array($currentOwnerId, $allowedUserIds)) {
@@ -208,23 +195,10 @@ class Project_Edit_View extends Vtiger_Edit_View {
 			return array();
 		}
 		
-		// Use creatorid logic from vtiger_user_branch_map
-		$db = PearDatabase::getInstance();
-		$st = '';
-		$result = $db->pquery(
-			"SELECT DISTINCT user_id FROM vtiger_user_branch_map 
-			 WHERE (parent_user_id = ? OR creatorid = ?){$st}",
-			array($currentUserId, $currentUserId)
-		);
-		
-		$allowedUserIds = array($currentUserId); // Always include current user
-		$n = $db->num_rows($result);
-		for ($i = 0; $i < $n; $i++) {
-			$userId = (int)$db->query_result($result, $i, 'user_id');
-			if ($userId > 0) {
-				$allowedUserIds[] = $userId;
-			}
-		}
+		// Use branch hierarchy logic to get both lower and higher level users in same branch
+		require_once 'modules/BranchUsers/models/UserList.php';
+		$branchUserIds = BranchUsers_UserList_Model::getBranchHierarchyUsers($currentUserId);
+		$allowedUserIds = array_merge(array($currentUserId), $branchUserIds); // Include current user in assigned to options
 
 		$currentOwnerId = (int)$recordModel->get('assigned_user_id');
 		if ($currentOwnerId > 0 && !in_array($currentOwnerId, $allowedUserIds)) {

@@ -18,11 +18,32 @@ class Leads_ListView_Model extends Vtiger_ListView_Model {
 		}
 		require_once $hierarchyHelper;
 		$currentUser = vglobal('current_user');
-		$listQuery .= BranchUsers_HierarchyAccess::appendPrivateLineSqlFragment(
+		
+		$hierarchyFragment = BranchUsers_HierarchyAccess::appendPrivateLineSqlFragment(
 			$currentUser,
 			'vtiger_crmentity.smownerid',
 			'vtiger_crmentity.smcreatorid'
 		);
+
+		// If hierarchy restriction exists, we need to allow mentions as an exception
+		if (!empty($hierarchyFragment)) {
+			$mentionHelper = 'modules/Project/helpers/MentionPermissionHelper.php';
+			if (file_exists($mentionHelper)) {
+				require_once $mentionHelper;
+				$mentionedRecords = Project_MentionPermissionHelper::getMentionedProjects($currentUser->id);
+				if (!empty($mentionedRecords)) {
+					$mentionIds = implode(',', $mentionedRecords);
+					// Strip the leading " AND " from hierarchy fragment to wrap it in our OR
+					$hierarchyCondition = preg_replace('/^\s*AND\s+/i', '', $hierarchyFragment);
+					$listQuery .= " AND ( $hierarchyCondition OR vtiger_crmentity.crmid IN ($mentionIds) ) ";
+				} else {
+					$listQuery .= $hierarchyFragment;
+				}
+			} else {
+				$listQuery .= $hierarchyFragment;
+			}
+		}
+
 		return $listQuery;
 	}
 

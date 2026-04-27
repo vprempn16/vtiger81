@@ -27,24 +27,28 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 	public function process(Vtiger_Request $request) {
 		$moduleName = $request->getModule();
 		$recordId = $request->get('record');
-        $recordModel = $this->record;
-        if(!$recordModel){
-            if (!empty($recordId)) {
-                $recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
-            } else {
-                $recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
-            }
-        }
+		$recordModel = $this->record;
+		if(!$recordModel){
+			if (!empty($recordId)) {
+				$recordModel = Vtiger_Record_Model::getInstanceById($recordId, $moduleName);
+			} else {
+				$recordModel = Vtiger_Record_Model::getCleanInstance($moduleName);
+			}
+		}
 
 		$viewer = $this->getViewer($request);
 
-	$salutationFieldModel = Vtiger_Field_Model::getInstance('salutationtype', $recordModel->getModule());
-	$salutationValue = $request->get('salutationtype');
-        if(!empty($salutationValue)){ 
-        	$salutationFieldModel->set('fieldvalue', $salutationValue); 
-        } else{ 
-        	$salutationFieldModel->set('fieldvalue', $recordModel->get('salutationtype')); 
-        } 
+		$salutationFieldModel = Vtiger_Field_Model::getInstance('salutationtype', $recordModel->getModule());
+		$salutationValue = $request->get('salutationtype');
+		if(!empty($salutationValue)){ 
+			$salutationFieldModel->set('fieldvalue', $salutationValue); 
+		} else{ 
+			$salutationFieldModel->set('fieldvalue', $recordModel->get('salutationtype')); 
+		} 
+		$filteredUsers = $this->getFilteredAssignedUsers($recordModel);
+                $viewer->assign('FILTERED_ASSIGNED_USERS', $filteredUsers);
+		
+
 		$viewer->assign('SALUTATION_FIELD_MODEL', $salutationFieldModel);
 		$this->applyHierarchyOwnerPicklist($recordModel);
 
@@ -94,6 +98,36 @@ class Leads_Edit_View extends Vtiger_Edit_View {
 		);
 		$ownerFieldModel->setFieldInfo($fieldInfo);
 	}
+	 private function getFilteredAssignedUsers($recordModel) {
+                $currentUserModel = Users_Record_Model::getCurrentUserModel();
+                if (!$currentUserModel) {
+                        return array();
+                }
+
+                // Check if user is admin - if admin, return empty to use default behavior
+                if ($currentUserModel->isAdminUser()) {
+                        return array();
+                }
+
+                $currentUser = vglobal('current_user');
+                $currentUserId = (int)$currentUser->id;
+                if ($currentUserId <= 0) {
+                        return array();
+                }
+
+                // Use branch hierarchy logic to get both lower and higher level users in same branch
+                require_once 'modules/BranchUsers/models/UserList.php';
+                $branchUserIds = BranchUsers_UserList_Model::getBranchHierarchyUsers($currentUserId);
+                $allowedUserIds = array_merge(array($currentUserId), $branchUserIds); // Include current user in assigned to options
+
+                $currentOwnerId = (int)$recordModel->get('assigned_user_id');
+                if ($currentOwnerId > 0 && !in_array($currentOwnerId, $allowedUserIds)) {
+                        $allowedUserIds[] = $currentOwnerId;
+                }
+
+                $allowedUserIds = array_values(array_unique(array_map('intval', $allowedUserIds)));
+                return $this->getActiveUsersByIds($allowedUserIds);
+        }
 
 	/**
 	 * @param int[] $ids

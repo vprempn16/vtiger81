@@ -38,7 +38,9 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 		}
 
 		$viewer = $this->getViewer($request);
-
+		// Also assign filtered users directly for template use
+                $filteredUsers = $this->getFilteredAssignedUsers($recordModel);
+                $viewer->assign('FILTERED_ASSIGNED_USERS', $filteredUsers);
 		$salutationFieldModel = Vtiger_Field_Model::getInstance('salutationtype', $recordModel->getModule());
 		// Fix for http://trac.vtiger.com/cgi-bin/trac.cgi/ticket/7851
 		$salutationType = $request->get('salutationtype');
@@ -47,6 +49,7 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 		} else {
 			$salutationFieldModel->set('fieldvalue', $recordModel->get('salutationtype')); 
 		}
+
 		$viewer->assign('SALUTATION_FIELD_MODEL', $salutationFieldModel);
 		$this->applyHierarchyOwnerPicklist($recordModel);
 
@@ -95,6 +98,44 @@ class Contacts_Edit_View extends Vtiger_Edit_View {
 			vtranslate('LBL_GROUPS') => array()
 		);
 		$ownerFieldModel->setFieldInfo($fieldInfo);
+	}
+
+	
+        /**
+         * Get filtered assigned users based on creatorid logic
+         *
+         * @param Vtiger_Record_Model $recordModel
+         * @return array<int,string>
+         */
+        private function getFilteredAssignedUsers($recordModel) {
+                $currentUserModel = Users_Record_Model::getCurrentUserModel();
+                if (!$currentUserModel) {
+                        return array();
+                }
+
+                // Check if user is admin - if admin, return empty to use default behavior
+                if ($currentUserModel->isAdminUser()) {
+                        return array();
+                }
+
+                $currentUser = vglobal('current_user');
+                $currentUserId = (int)$currentUser->id;
+                if ($currentUserId <= 0) {
+                        return array();
+                }
+
+                // Use branch hierarchy logic to get both lower and higher level users in same branch
+                require_once 'modules/BranchUsers/models/UserList.php';
+                $branchUserIds = BranchUsers_UserList_Model::getBranchHierarchyUsers($currentUserId);
+                $allowedUserIds = array_merge(array($currentUserId), $branchUserIds); // Include current user in assigned to options
+
+                $currentOwnerId = (int)$recordModel->get('assigned_user_id');
+                if ($currentOwnerId > 0 && !in_array($currentOwnerId, $allowedUserIds)) {
+                        $allowedUserIds[] = $currentOwnerId;
+                }
+
+                $allowedUserIds = array_values(array_unique(array_map('intval', $allowedUserIds)));
+                return $this->getActiveUsersByIds($allowedUserIds);
 	}
 
 	/**

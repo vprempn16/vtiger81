@@ -101,4 +101,36 @@ class Project_MentionPermissionHelper {
         return $count > 0;
     }
     
+    /**
+     * Get array of mentioned project IDs for a user
+     * @param int $userId
+     * @return array Array of project IDs where user was mentioned
+     */
+    public static function getMentionedProjects($userId) {
+        global $adb;
+        
+        $userId = (int)$userId;
+        if ($userId <= 0) {
+            return array();
+        }
+        
+        // Get mentioned projects (last 24 hours)
+        $mentionQuery = $adb->pquery(
+            "SELECT DISTINCT related_to FROM vtiger_modcomments 
+             WHERE modcommentsid IN (
+                 SELECT crmid FROM vtiger_vdnotifierpro 
+                 WHERE userid = ? AND action = 'MENTION' 
+                 AND modifiedtime > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+             )",
+            array($userId)
+        );
+        
+        $mentionedProjects = array();
+        while ($row = $adb->fetch_array($mentionQuery)) {
+            $mentionedProjects[] = $row['related_to'];
+        }
+        
+        return $mentionedProjects;
+    }
+    
 }

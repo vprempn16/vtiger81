@@ -391,7 +391,8 @@ function isPermitted($module,$actionname,$record_id='')
 				return $permission;
 			}
 			// Custom: Allow Project record creator to always access their records (detail/edit view)
-			if ($module == 'Project') {
+			$modules = array('Project','Contacts','Leads');
+			if (in_array($module,$modules)){
 				$crSql = "SELECT smcreatorid FROM vtiger_crmentity WHERE crmid = ?";
 				$crRes = $adb->pquery($crSql, array($record_id));
 				if ($adb->num_rows($crRes) > 0) {
@@ -402,11 +403,17 @@ function isPermitted($module,$actionname,$record_id='')
 				}
                                 // Custom: Allow mentioned users to access project records (view access)
                                 $mentionHelper = 'modules/Project/helpers/MentionPermissionHelper.php';
+				//$adb->setDebug(true);
                                 if (file_exists($mentionHelper)) {
                                         require_once $mentionHelper;
+					//echo"<pre>";print_r([$record_id,$current_user->id,Project_MentionPermissionHelper::wasUserMentionedInProject($record_id, $current_user->id)]);die('@');
                                         if (Project_MentionPermissionHelper::wasUserMentionedInProject($record_id, $current_user->id)) {
-                                                $log->debug("Exiting isPermitted method ... Project Mention Access Granted");
-                                                return 'yes';
+                                                // Only allow read-only actions for mentioned users
+                                                $allowedViewActions = array('DetailView', 'ListView', 'index', 'Export', 'Print');
+                                                if (in_array($actionname, $allowedViewActions)) {
+                                                        $log->debug("Exiting isPermitted method ... Project Mention Access Granted (Read-only)");
+                                                        return 'yes';
+                                                }
                                         }
                                 }
 			}

@@ -48,18 +48,34 @@ class BranchUsers_UserList_Model {
 					LEFT JOIN vtiger_user_branch_map ubm ON ubm.user_id = u.id
 					WHERE u.deleted = 0";
 		} else {
-			// Non-admin users can see their children and created users
-			$params = array($currentUserId, $currentUserId);
-			$query = "SELECT u.id, u.user_name, u.first_name, u.last_name, u.email1, u.status,
-						r.rolename AS role_name,
-						ubm.parent_user_id,
-						ubm.creatorid AS creator_id
-					FROM vtiger_users u
-					LEFT JOIN vtiger_user2role ur ON ur.userid = u.id
-					LEFT JOIN vtiger_role r ON r.roleid = ur.roleid
-					LEFT JOIN vtiger_user_branch_map ubm ON ubm.user_id = u.id
-					WHERE u.deleted = 0
-					  AND (ubm.parent_user_id = ? OR ubm.creatorid = ?)";
+			// Non-admin users can see all users in their branch hierarchy (all descendants)
+			$branchUserIds = self::getBranchDescendants($currentUserId);
+			if (empty($branchUserIds)) {
+				// No descendants found, return empty result
+				$params = array();
+				$query = "SELECT u.id, u.user_name, u.first_name, u.last_name, u.email1, u.status,
+							r.rolename AS role_name,
+							ubm.parent_user_id,
+							ubm.creatorid AS creator_id
+						FROM vtiger_users u
+						LEFT JOIN vtiger_user2role ur ON ur.userid = u.id
+						LEFT JOIN vtiger_role r ON r.roleid = ur.roleid
+						LEFT JOIN vtiger_user_branch_map ubm ON ubm.user_id = u.id
+						WHERE u.deleted = 0 AND 1=0"; // Always false condition
+			} else {
+				$placeholders = str_repeat('?,', count($branchUserIds) - 1) . '?';
+				$params = array_merge($branchUserIds);
+				$query = "SELECT u.id, u.user_name, u.first_name, u.last_name, u.email1, u.status,
+							r.rolename AS role_name,
+							ubm.parent_user_id,
+							ubm.creatorid AS creator_id
+						FROM vtiger_users u
+						LEFT JOIN vtiger_user2role ur ON ur.userid = u.id
+						LEFT JOIN vtiger_role r ON r.roleid = ur.roleid
+						LEFT JOIN vtiger_user_branch_map ubm ON ubm.user_id = u.id
+						WHERE u.deleted = 0
+						  AND u.id IN ($placeholders)";
+			}
 		}
 
 		if ($search !== '') {
@@ -89,13 +105,19 @@ class BranchUsers_UserList_Model {
 					WHERE u.deleted = 0";
 			$params = array();
 		} else {
-			// Non-admin users can see their children and created users
-			$query = "SELECT COUNT(*) AS total
-					FROM vtiger_users u
-					LEFT JOIN vtiger_user_branch_map ubm ON ubm.user_id = u.id
-					WHERE u.deleted = 0
-					  AND (ubm.parent_user_id = ? OR ubm.creatorid = ?)";
-			$params = array($currentUserId, $currentUserId);
+			// Non-admin users can see all users in their branch hierarchy (all descendants)
+			$branchUserIds = self::getBranchDescendants($currentUserId);
+			if (empty($branchUserIds)) {
+				// No descendants found, return 0
+				return 0;
+			} else {
+				$placeholders = str_repeat('?,', count($branchUserIds) - 1) . '?';
+				$params = array_merge($branchUserIds);
+				$query = "SELECT COUNT(*) AS total
+						FROM vtiger_users u
+						WHERE u.deleted = 0
+						  AND u.id IN ($placeholders)";
+			}
 		}
 
 		if ($search !== '') {
@@ -109,6 +131,102 @@ class BranchUsers_UserList_Model {
 			return 0;
 		}
 		return (int)$db->query_result($result, 0, 'total');
+	}
+
+	/**
+	 * Get all users in branch hierarchy (all descendants of current user)
+	 *
+	 * @param int $parentUserId
+	 * @return array<int> List of user IDs in the branch
+	 */
+	public static function getBranchDescendants($parentUserId) {
+		$db = PearDatabase::getInstance();
+		$allDescendants = array(); // Don't include current user in list view
+		$toProcess = array($parentUserId);
+		
+		while (!empty($toProcess)) {
+			$currentParent = array_shift($toProcess);
+			
+			// Find all direct children of current parent
+			$result = $db->pquery(
+				"SELECT user_id FROM vtiger_user_branch_map WHERE parent_user_id = ?",
+				array($currentParent)
+			);
+			
+			$children = array();
+			$count = $db->num_rows($result);
+			for ($i = 0; $i < $count; $i++) {
+				$childId = (int)$db->query_result($result, $i, 'user_id');
+				if ($childId > 0 && !in_array($childId, $allDescendants)) {
+					$children[] = $childId;
+					$allDescendants[] = $childId;
+				}
+			}
+			
+			// Add children to processing queue to find their descendants
+			$toProcess = array_merge($toProcess, $children);
+		}
+		
+		return $allDescendants;
+	}
+	
+	/**
+	 * Get all users in the same branch hierarchy (both descendants and ancestors)
+	 * @param int $currentUserId
+	 * @return array Array of user IDs in the same branch hierarchy (excluding current user)
+	 */
+	public static function getBranchHierarchyUsers($currentUserId) {
+		$db = PearDatabase::getInstance();
+		$hierarchyUsers = array();
+		
+		// Get all descendants (lower-level users)
+		$descendants = self::getBranchDescendants($currentUserId);
+		$hierarchyUsers = array_merge($hierarchyUsers, $descendants);
+		
+		// Get all ancestors (higher-level users)
+		$ancestors = self::getBranchAncestors($currentUserId);
+		$hierarchyUsers = array_merge($hierarchyUsers, $ancestors);
+		
+		// Remove duplicates and exclude current user
+		$hierarchyUsers = array_unique($hierarchyUsers);
+		$hierarchyUsers = array_filter($hierarchyUsers, function($userId) use ($currentUserId) {
+			return $userId != $currentUserId;
+		});
+		
+		return array_values($hierarchyUsers);
+	}
+	
+	/**
+	 * Get all ancestors (higher-level users) in the branch hierarchy
+	 * @param int $userId
+	 * @return array Array of ancestor user IDs
+	 */
+	public static function getBranchAncestors($userId) {
+		$db = PearDatabase::getInstance();
+		$ancestors = array();
+		$currentUserId = $userId;
+		
+		// Trace up the hierarchy to find all ancestors
+		while ($currentUserId > 0) {
+			$result = $db->pquery(
+				"SELECT parent_user_id FROM vtiger_user_branch_map WHERE user_id = ?",
+				array($currentUserId)
+			);
+			
+			if ($db->num_rows($result) > 0) {
+				$parentId = (int)$db->query_result($result, 0, 'parent_user_id');
+				if ($parentId > 0 && !in_array($parentId, $ancestors)) {
+					$ancestors[] = $parentId;
+					$currentUserId = $parentId;
+				} else {
+					break; // No more parents or cycle detected
+				}
+			} else {
+				break; // No parent found
+			}
+		}
+		
+		return $ancestors;
 	}
 }
 

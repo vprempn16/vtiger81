@@ -77,7 +77,7 @@
 												<i title="{vtranslate('LBL_MORE_OPTIONS', 'Vtiger')}" class="fa fa-ellipsis-v icon"></i>
 											</span>
 											<ul class="dropdown-menu" style="top: auto; bottom: 45%;">
-												{if $IS_ADMIN || $ROW.id eq $CURRENT_USER_ID || $ROW.parent_user_id eq $CURRENT_USER_ID || $ROW.creator_id eq $CURRENT_USER_ID}
+												{if $IS_ADMIN || $ROW.id eq $CURRENT_USER_ID || $ROW.parent_user_id eq $CURRENT_USER_ID || $ROW.creator_id eq $CURRENT_USER_ID || $CAN_EDIT_SAME_LEVEL_USERS}
 													<li>
 														<a href="index.php?module={$MODULE}&view=Edit&record={$ROW.id}">
 															<i class="fa fa-pencil"></i>&nbsp;{vtranslate('LBL_EDIT', 'Vtiger')}
@@ -98,7 +98,7 @@
 								<td class="listViewEntryValue">
 									<span class="fieldValue">
 										<span class="value">
-											{if $IS_ADMIN || $ROW.id eq $CURRENT_USER_ID || $ROW.parent_user_id eq $CURRENT_USER_ID || $ROW.creator_id eq $CURRENT_USER_ID}
+											{if $IS_ADMIN || $ROW.id eq $CURRENT_USER_ID || $ROW.parent_user_id eq $CURRENT_USER_ID || $ROW.creator_id eq $CURRENT_USER_ID || $CAN_EDIT_SAME_LEVEL_USERS}
 												<a href="index.php?module={$MODULE}&view=Edit&record={$ROW.id}">{$ROW.user_name}</a>
 											{else}
 												{$ROW.user_name}

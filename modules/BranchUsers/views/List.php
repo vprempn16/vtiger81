@@ -84,11 +84,21 @@ class BranchUsers_List_View extends Vtiger_Index_View {
 		}
 		$users = BranchUsers_UserList_Model::getManageableUsers($currentUserId, $isAdmin, $options);
 
+		// Determine if current user can edit same level users based on branch hierarchy
+		$canEditSameLevelUsers = false;
+		if (!$isAdmin) {
+			// Get ancestors (higher-level users) in the branch hierarchy
+			$ancestors = BranchUsers_UserList_Model::getBranchAncestors($currentUserId);
+			// If current user has higher-level users, they can edit same level users
+			$canEditSameLevelUsers = !empty($ancestors);
+		}
+
 		$viewer = $this->getViewer($request);
 		$viewer->assign('MODULE', $request->getModule());
 		$viewer->assign('USERS', $users);
 		$viewer->assign('CURRENT_USER_ID', $currentUserId);
 		$viewer->assign('IS_ADMIN', $isAdmin);
+		$viewer->assign('CAN_EDIT_SAME_LEVEL_USERS', $canEditSameLevelUsers);
 		$viewer->assign('SEARCH_KEY', $search);
 		$viewer->assign('ORDERBY', $orderBy);
 		$viewer->assign('SORTORDER', $sortOrder);

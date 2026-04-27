@@ -715,51 +715,67 @@ class Project extends CRMEntity {
 		return $projectTasks;
 	}
 	function getNonAdminAccessControlQuery($module, $user, $scope = '')
-        {
-                require('user_privileges/user_privileges_' . $user->id . '.php');
-                require('user_privileges/sharing_privileges_' . $user->id . '.php');
-                $query = ' ';
-                $tabId = getTabid($module);
-                if (
-                        $is_admin == false && $profileGlobalPermission[1] == 1 && $profileGlobalPermission[2]
-                        == 1 && $defaultOrgSharingPermission[$tabId] == 3
-                ) {
-                        $tableName = 'vt_tmp_u' . $user->id;
-                        $sharingRuleInfoVariable = $module . '_share_read_permission';
-                        $sharingRuleInfo = $$sharingRuleInfoVariable;
-                        $sharedTabId = null;
-                        if (
-                                !empty($sharingRuleInfo) && (php7_count($sharingRuleInfo['ROLE']) > 0 ||
-                                        php7_count($sharingRuleInfo['GROUP']) > 0)
-                        ) {
-                                $tableName = $tableName . '_t' . $tabId;
-                                $sharedTabId = $tabId;
-                        } elseif ($module == 'Calendar' || !empty($scope)) {
-                                $tableName .= '_t' . $tabId;
-                        }
-                        $this->setupTemporaryTable($tableName, $sharedTabId, $user, $current_user_parent_role_seq, $current_user_groups);
-                        // for secondary module we should join the records even if record is not there(primary module without related record)
-                        if ($scope == '') {
-                                $query = " INNER JOIN $tableName $tableName$scope ON ( $tableName$scope.id = " .
-                                        "vtiger_crmentity$scope.smownerid OR $tableName$scope.id = " .
-                                        "vtiger_crmentity$scope.smcreatorid)  ";
-                        } else {
-                                $query = " INNER JOIN $tableName $tableName$scope ON $tableName$scope.id = " .
-                                        "vtiger_crmentity$scope.smownerid OR vtiger_crmentity$scope.smownerid IS NULL";
-                        }
-                }
-				// Partner scope restriction (do not switch admin context here).
-				$partnerHelper = 'modules/BranchUsers/helpers/PartnerAccess.php';
-				if (file_exists($partnerHelper)) {
-					require_once $partnerHelper;
-					$query .= BranchUsers_PartnerAccess::appendPartnerCrmentityFilter($module, $user, $scope);
+	{
+		require('user_privileges/user_privileges_' . $user->id . '.php');
+		require('user_privileges/sharing_privileges_' . $user->id . '.php');
+		$query = ' ';
+		$tabId = getTabid($module);
+		if (
+			$is_admin == false && $profileGlobalPermission[1] == 1 && $profileGlobalPermission[2]
+			== 1 && $defaultOrgSharingPermission[$tabId] == 3
+		) {
+			$tableName = 'vt_tmp_u' . $user->id;
+			$sharingRuleInfoVariable = $module . '_share_read_permission';
+			$sharingRuleInfo = $$sharingRuleInfoVariable;
+			$sharedTabId = null;
+			if (
+				!empty($sharingRuleInfo) && (php7_count($sharingRuleInfo['ROLE']) > 0 ||
+					php7_count($sharingRuleInfo['GROUP']) > 0)
+			) {
+				$tableName = $tableName . '_t' . $tabId;
+				$sharedTabId = $tabId;
+			} elseif ($module == 'Calendar' || !empty($scope)) {
+				$tableName .= '_t' . $tabId;
+			}
+			$this->setupTemporaryTable($tableName, $sharedTabId, $user, $current_user_parent_role_seq, $current_user_groups);
+			
+			// for secondary module we should join the records even if record is not there(primary module without related record)
+			if ($scope == '') {
+				$query = " INNER JOIN $tableName $tableName$scope ON ( ($tableName$scope.id = " .
+						"vtiger_crmentity$scope.smownerid OR $tableName$scope.id = " .
+						"vtiger_crmentity$scope.smcreatorid) ";
+			} else {
+				$query = " INNER JOIN $tableName $tableName$scope ON ( ($tableName$scope.id = " .
+						"vtiger_crmentity$scope.smownerid OR vtiger_crmentity$scope.smownerid IS NULL) ";
+			}
+
+			// Partner scope restriction (do not switch admin context here).
+			$partnerHelper = 'modules/BranchUsers/helpers/PartnerAccess.php';
+			if (file_exists($partnerHelper)) {
+				require_once $partnerHelper;
+				$query .= BranchUsers_PartnerAccess::appendPartnerCrmentityFilter($module, $user, $scope);
+			}
+			$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
+			if (file_exists($hierarchyHelper)) {
+				require_once $hierarchyHelper;
+				$query .= BranchUsers_HierarchyAccess::appendProjectPrivateLineSqlFragment($user, "vtiger_crmentity{$scope}.smownerid", "vtiger_crmentity{$scope}.smcreatorid");
+			}
+			
+			// Check if user has mentioned projects and modify join type accordingly
+			$mentionHelper = 'modules/Project/helpers/MentionPermissionHelper.php';
+			if (file_exists($mentionHelper)) {
+				require_once $mentionHelper;
+				$mentionedProjects = Project_MentionPermissionHelper::getMentionedProjects($user->id);
+				if (!empty($mentionedProjects)) {
+					$mentionIds = implode(',', $mentionedProjects);
+					// Tie mention to current user's ID in the temporary table to avoid duplicates
+					$query .= " OR ($tableName$scope.id = {$user->id} AND vtiger_crmentity{$scope}.crmid IN ($mentionIds))";
 				}
-				$hierarchyHelper = 'modules/BranchUsers/helpers/HierarchyAccess.php';
-				if (file_exists($hierarchyHelper)) {
-					require_once $hierarchyHelper;
-					$query .= BranchUsers_HierarchyAccess::appendProjectPrivateLineSqlFragment($user, "vtiger_crmentity{$scope}.smownerid", "vtiger_crmentity{$scope}.smcreatorid");
-				}
-                return $query;
-        }
+			}
+			
+			$query .= " ) ";
+		}
+		return $query;
+	}
 }
 ?>
